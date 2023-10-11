@@ -41,3 +41,9 @@ Modules are expected to return a `dict` with the following keys:
 """
         msg = "This method should be implemented in child class"
         raise NotImplementedError(msg)
+
+    def __repr__(self):
+        """
+        Human-readable text representation of the class for logging purposes.
+        """
+        return self.__class__.__name__
