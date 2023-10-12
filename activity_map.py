@@ -94,21 +94,6 @@ Parameters:
             return dict()
 
         except urllib.error.URLError as e:
-            print(e)
+            self.__logger.error("Connection error", exc_info=e)
         except socket.timeout:
-            print("Timed out!")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            self.__logger.error("Connection timed out!")

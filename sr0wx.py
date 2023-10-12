@@ -142,9 +142,10 @@ config = None
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--config")
-    parser.add_argument("-d", "--debug", action='store_true')
-    parser.add_argument("-t", "--test-mode", action='store_true')
+    parser.add_argument("-c", "--config", help="Path to an alternate config.py file")
+    parser.add_argument("-d", "--debug", action='store_true', help="Enable debug logging")
+    parser.add_argument("-t", "--test-mode", action='store_true',
+                        help="Enable test mode (disables serial port operations)")
     parser.add_argument("modules", metavar='MOD', nargs='*')
     args = parser.parse_args()
     return args
@@ -189,15 +190,16 @@ def prepare_sample_dictionary():
     sound_samples = {}
     for el in message:
         if isinstance(el, str):
-            if el[0:7] == 'file://':
-                sound_samples[el] = pygame.mixer.Sound(el[7:])
+            if el.startswith('file://'):
+                sound_samples[el] = pygame.mixer.Sound(el.removeprefix("file://"))
 
             if el != "_" and el not in sound_samples:
-                if not os.path.isfile(config.lang + "/" + el + ".ogg"):
-                    logger.warning(COLOR_FAIL + "Couldn't find %s" % (config.lang + "/" + el + ".ogg" + COLOR_ENDC))
-                    sound_samples[el] = pygame.mixer.Sound(config.lang + "/beep.ogg")
+                sample_path = os.path.join(config.lang, f"{el}.ogg")
+                if not os.path.isfile(sample_path):
+                    logger.warning(f"{COLOR_FAIL}Couldn't find %s{COLOR_ENDC}", sample_path)
+                    sound_samples[el] = pygame.mixer.Sound(os.path.join(config.lang, "beep.ogg"))
                 else:
-                    sound_samples[el] = pygame.mixer.Sound(config.lang + "/" + el + ".ogg")
+                    sound_samples[el] = pygame.mixer.Sound(sample_path)
         else:
             logger.error("Unsupported sample type: %s (sample %s)", type(el), el)
     return sound_samples
@@ -214,8 +216,8 @@ if __name__ == "__main__":
 
     logger = setup_logging(config, debug=args.debug)
 
-    logger.info(COLOR_WARNING + "sr0wx.py started" + COLOR_ENDC)
-    logger.info(Fore.BLUE + LICENSE + Style.RESET_ALL)
+    logger.info(f"{COLOR_WARNING}sr0wx.py started{COLOR_ENDC}")
+    logger.info(f"{Fore.BLUE}{LICENSE}{Style.RESET_ALL}")
 
     ptt = PTT(config.serial_port, config.serial_baud_rate, config.serial_signal, args.test_mode)
 
@@ -326,13 +328,13 @@ if __name__ == "__main__":
     # other stuff) before closing the ``pygame`` mixer and display some debug
     # informations.
 
-    logger.info(COLOR_WARNING + "finishing in 1 second...\n" + COLOR_ENDC)
+    logger.info(f"{COLOR_WARNING}finishing in 1 second...\n{COLOR_ENDC}")
 
     pygame.time.delay(1000)
 
     ptt.release()
 
-    logger.info(COLOR_WARNING + "goodbye" + COLOR_ENDC)
+    logger.info(f"{COLOR_WARNING}goodbye{COLOR_ENDC}")
 
     # Documentation is a good thing when you need to double or triple your
     # Lines-Of-Code index ;)

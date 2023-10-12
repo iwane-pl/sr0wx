@@ -13,6 +13,7 @@ from pprint import pprint
 
 from sr0wx_module import SR0WXModule
 
+
 class AirPollutionSq9atk(SR0WXModule):
     """Klasa pobierająca info o zanieczyszczeniach powietrza"""
 
@@ -29,14 +30,14 @@ class AirPollutionSq9atk(SR0WXModule):
 
     def getJson(self, url):
         self.__logger.info("::: Odpytuję adres: " + url)
-        
+
         try:
             data = urllib.request.urlopen(url, None, 45)
             return json.load(data)
         except urllib.error.URLError as e:
-            print(e)
+            self.__logger.error("Connection error", exc_info=e)
         except socket.timeout:
-            print("Timed out!")
+            self.__logger.error("Connection timed out!")
 
         return {}
 
@@ -51,8 +52,8 @@ class AirPollutionSq9atk(SR0WXModule):
     def getSensorValue(self, sensorId):
         url = self.__service_url + self.__sensor_url + str(sensorId)
         data = self.getJson(url)
-        if data['values'][0]['value']: # czasem tu schodzi null
-            value = data['values'][0]['value'] 
+        if data['values'][0]['value']:  # czasem tu schodzi null
+            value = data['values'][0]['value']
         else:
             value = data['values'][1]['value']
         return [
@@ -70,8 +71,8 @@ class AirPollutionSq9atk(SR0WXModule):
         sensors = []
         for row in self.getJson(url):
             value = self.getSensorValue(row['id'])
-            if(value[1]>1): # czasem tu schodzi none
-                qualityIndexName = self.mbstr2asci(value[0]) + "IndexLevel"
+            if value[1] > 1:  # czasem tu schodzi none
+                qualityIndexName = self.safe_name(value[0]) + "IndexLevel"
                 if qualityIndexName in levelIndexArray:
                     index = levelIndexArray[qualityIndexName]['indexLevelName']
                 else:
@@ -79,34 +80,33 @@ class AirPollutionSq9atk(SR0WXModule):
                 sensors.append([
                     row['id'],
                     qualityIndexName,
-                    self.mbstr2asci(row['param']['paramName']),
+                    self.safe_name(row['param']['paramName']),
                     value[1],
-                    self.mbstr2asci(index)
+                    self.safe_name(index)
                 ])
         if len(sensors) > 0:
             return sensors
         else:
-            raise Exception("brak danych pomiarowych")
+            raise RuntimeError("brak danych pomiarowych")
 
     def prepareMessage(self, data):
-        levels =  {
-            'bardzo_dobry'  :'poziom_bardzo_dobry _ ',
-            'dobry'         :'poziom_dobry _ ',
-            'dostateczny'   :'poziom_dostateczny _ ',
-            'umiarkowany'   :'poziom_umiarkowany _ ',
-            'zly'           :'poziom_zl_y _ ', # ten jest chyba nieuzywany
-            'zl_y'           :'poziom_zl_y _ ',
-            'bardzo_zly'    :'poziom_bardzo_zl_y _ ', # ten też jest chyba nieuzywany
-            'bardzo_zl_y'    :'poziom_bardzo_zl_y _ ',
-            'empty'          : ''
+        levels = {
+            'bardzo_dobry': 'poziom_bardzo_dobry _ ',
+            'dobry': 'poziom_dobry _ ',
+            'dostateczny': 'poziom_dostateczny _ ',
+            'umiarkowany': 'poziom_umiarkowany _ ',
+            'zly': 'poziom_zl_y _ ',  # ten jest chyba nieuzywany
+            'zl_y': 'poziom_zl_y _ ',
+            'bardzo_zly': 'poziom_bardzo_zl_y _ ',  # ten też jest chyba nieuzywany
+            'bardzo_zl_y': 'poziom_bardzo_zl_y _ ',
+            'empty': ''
         }
         message = " "
         for row in data:
             message += " " + row[2]
-            message += " " + self.__language.read_micrograms( int(row[3]) )
+            message += " " + self.__language.read_micrograms(int(row[3]))
             message += " " + levels[row[4]]
         return message
-
 
     def get_data(self):
         self.__logger.info("::: Pobieram informacje o skażeniu powietrza...")
@@ -115,25 +115,11 @@ class AirPollutionSq9atk(SR0WXModule):
         sensorsData = self.getSensorsData()
         valuesMessage = self.prepareMessage(sensorsData)
 
-        message = " "
         message = " _ informacja_o_skaz_eniu_powietrza _ "
-        message += " stacja_pomiarowa " + self.mbstr2asci(self.getStationName()) + " _ "
+        message += " stacja_pomiarowa " + self.safe_name(self.getStationName()) + " _ "
         message += valuesMessage
-        print("\n")
+
         return {
             "message": message,
             "source": "powietrze_malopolska_pl",
         }
-
-    def mbstr2asci(self, string):
-        """Zwraca "bezpieczną" nazwę dla wyrazu z polskimi znakami diakrytycznymi"""
-        return string.lower().\
-            replace('ą','a_').replace('ć','c_').\
-            replace('ę','e_').replace('ł','l_').\
-            replace('ń','n_').replace('ó','o_').\
-            replace('ś','s_').replace('ź','x_').\
-            replace('ż','z_').replace(' ','_').\
-            replace('-','_').replace('(','').\
-            replace(')','').replace('.','').\
-            replace(',','')
-
