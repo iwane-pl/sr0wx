@@ -9,3 +9,4 @@ pytz
 requests
 six
 urllib3
+colorama
