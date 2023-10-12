@@ -316,7 +316,7 @@ from radioactive_sq9atk import RadioactiveSq9atk
 radioactivesq9atk = RadioactiveSq9atk(
     language=pl_google,
     service_url="http://radioactiveathome.org/map/",
-    sensor_id=35167 #czujnik w centrum Krakowa
+    sensor_id=12521 # Opole
     ## więcej czujników na stronie http://radioactiveathome.org/map/
 )
 

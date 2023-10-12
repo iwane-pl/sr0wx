@@ -4,8 +4,10 @@
 import logging, re
 import urllib.request, urllib.error, urllib.parse
 import time
+import socket
 
 from sr0wx_module import SR0WXModule
+
 
 class GeoMagneticSq9atk(SR0WXModule):
     """Klasa pobierająca info o sytuacji geomagnetycznej"""
@@ -15,22 +17,22 @@ class GeoMagneticSq9atk(SR0WXModule):
         self.__service_url = service_url
         self.__logger = logging.getLogger(__name__)
 
-        self.__days = ['dzis','jutro','po_jutrze']
+        self.__days = ['dzis', 'jutro', 'po_jutrze']
         self.__conditions = {
-            0:' ',
-            1:'brak_istotnych_zaburzen__geomagnetycznych',   2:'lekkie_zaburzenia_geomagnetyczne',
-            3:'umiarkowane_zabuz_enia_geomagnetyczne',      4:'mal_a_burza_geomagnetyczna',
-            5:'umiarkowana_burza_geomagnetyczna',           6:'silna_burza_geomagnetyczna',
-            7:'sztorm_geomagnetyczny',                      8:'duz_y_sztorm_geomagnetyczny'
+            0: ' ',
+            1: 'brak_istotnych_zaburzen__geomagnetycznych', 2: 'lekkie_zaburzenia_geomagnetyczne',
+            3: 'umiarkowane_zabuz_enia_geomagnetyczne', 4: 'mal_a_burza_geomagnetyczna',
+            5: 'umiarkowana_burza_geomagnetyczna', 6: 'silna_burza_geomagnetyczna',
+            7: 'sztorm_geomagnetyczny', 8: 'duz_y_sztorm_geomagnetyczny'
         }
         self.__seasons = {
-            0:'kro_tko_po_po_l_nocy',    3:'nad_ranem',              6:'rano',
-            9:'przed_pol_udniem',       12:'wczesnym_popol_udniem', 15:'po_pol_udniu',
-           18:'wieczorem',              21:'przed_po_l_noca_',
+            0: 'kro_tko_po_po_l_nocy', 3: 'nad_ranem', 6: 'rano',
+            9: 'przed_pol_udniem', 12: 'wczesnym_popol_udniem', 15: 'po_pol_udniu',
+            18: 'wieczorem', 21: 'przed_po_l_noca_',
         }
         self.__fluctuations = {
-            0:'niezauwaz_alne', 1:'znikome', 2:'lekkie',       3:'podwyz_szone',
-            4:'umiarkowane',    5:'duz_e',   6:'bardzo_duz_e', 7:'ekstremalne'
+            0: 'niezauwaz_alne', 1: 'znikome', 2: 'lekkie', 3: 'podwyz_szone',
+            4: 'umiarkowane', 5: 'duz_e', 6: 'bardzo_duz_e', 7: 'ekstremalne'
         }
 
     def downloadDataFromUrl(self, url):
@@ -40,32 +42,36 @@ class GeoMagneticSq9atk(SR0WXModule):
             'User-Agent': 'Mozilla/5.0 (Windows NT 5.1; rv:10.0.1) Gecko/20100101 Firefox/10.0.1',
         }
         opener.addheaders = list(headers.items())
-        response = opener.open(url)
+        try:
+            response = opener.open(url)
+        except urllib.error.URLError as e:
+            self.__logger.error("Connection error", exc_info=e)
+        except socket.timeout:
+            self.__logger.error("Connection timed out!")
 
         return response.read()
-
 
     def getDataParsedHtmlData(self):
         self.__logger.info("::: Pobieram informacje...")
 
         html = self.downloadDataFromUrl(self.__service_url)
 
-        #r = re.compile(r'<div class="widget__value w_gm__value(.*?)">(\d)</div>')
+        # r = re.compile(r'<div class="widget__value w_gm__value(.*?)">(\d)</div>')
         r = re.compile(rb'<div class="value item-(\d)(.*?)"><svg>(.*?)</svg>(\d)</div>')
-        
+
         return r.findall(html)
 
     def groupValuesByDays(self, data):
         hour = 0
         dayNum = 1
         current_hour = int(time.strftime("%H"))
-        
-        output = {1:{},2:{},3:{}}
-    
+
+        output = {1: {}, 2: {}, 3: {}}
+
         for i, val in enumerate(data):
-            if dayNum > 1 or hour > current_hour-1: # omijamy godziny z przeszłości
+            if dayNum > 1 or hour > current_hour - 1:  # omijamy godziny z przeszłości
                 if dayNum < 4 and i < 24:
-                    value = data[i+1][3]
+                    value = data[i + 1][3]
                     output[dayNum][hour] = int(value)
 
             hour += 3
@@ -75,10 +81,10 @@ class GeoMagneticSq9atk(SR0WXModule):
 
         return output
 
-    def getStrongestConditionOfDay(self,data):
+    def getStrongestConditionOfDay(self, data):
         maxValue = {
-            'value':0,
-            'at':0,
+            'value': 0,
+            'at': 0,
         }
         for key, row in data.items():
             if row > maxValue['value']:
@@ -98,11 +104,11 @@ class GeoMagneticSq9atk(SR0WXModule):
 
         self.__logger.info("::: Przetwarzam dane...\n")
         for d, day in daysValues.items():
-            
+
             if len(day) > 0:
-                message += " _ "+self.__days[d-1] + " "
+                message += " _ " + self.__days[d - 1] + " "
                 condition = self.getStrongestConditionOfDay(day)
-                
+
                 message += self.__seasons[condition['at']] + " "
                 message += self.__conditions[int(condition['value'])] + " "
                 message += self.__fluctuations[self.getDailyFluctuation(day)] + " wahania_dobowe "

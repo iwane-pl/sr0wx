@@ -19,28 +19,42 @@
 import warnings
 
 
-class SR0WXModule(object):
+class SR0WXModule:
     """Base class for SR0WX modules."""
     def __init__(self):
         pass
 
     def getData(self):
-        """Deprecated method. Runs `get_data()`."""
+        """
+        Deprecated method. Runs `get_data()`.
+        """
         msg = "Use if getData() is deprecated, use get_data() instead"
         warnings.warn(msg)
         return self.get_data()
 
     def get_data(self):
-        """Returns message to be played back by core of sr0wx.py. Not
-implemented here.
+        """
+        Returns message to be played back by core of sr0wx.py. Not implemented here.
 
-Modules are expected to return a `dict` with the following keys:
-    - `message` -- message text, filled template, etc (currently list of
-    samples)
-    - `need_ctcss` -- hint for core module whether or not to playback CTCSS tone
-"""
+        Modules are expected to return a `dict` with the following keys:
+            - `message` -- message text, filled template, etc (currently list of
+            samples)
+            - `need_ctcss` -- hint for core module whether or not to playback CTCSS tone
+        """
         msg = "This method should be implemented in child class"
         raise NotImplementedError(msg)
+
+    @staticmethod
+    def safe_name(name):
+        """Zwraca "bezpieczną" nazwę dla wyrazu z polskimi znakami diakrytycznymi"""
+        return str(name, 'utf-8').lower(). \
+            replace('ą', 'a_').replace('ć', 'c_'). \
+            replace('ę', 'e_').replace('ł', 'l_'). \
+            replace('ń', 'n_').replace('ó', 'o_'). \
+            replace('ś', 's_').replace('ź', 'z_'). \
+            replace('ż', 'z_').replace(' ', '_'). \
+            replace('-', '_').replace('(', ''). \
+            replace(')', '')
 
     def __repr__(self):
         """
