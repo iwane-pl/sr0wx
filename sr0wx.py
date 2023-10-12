@@ -1,38 +1,4 @@
 #!/usr/bin/python -tt
-# -*- coding: utf-8 -*-
-import argparse
-
-COLOR_HEADER = '\033[95m'
-COLOR_OKBLUE = '\033[94m'
-COLOR_OKGREEN = '\033[92m'
-COLOR_WARNING = '\033[93m'
-COLOR_FAIL = '\033[91m'
-COLOR_BOLD = '\033[1m'
-COLOR_UNDERLINE = '\033[4m'
-COLOR_ENDC = '\033[0m'
-
-LICENSE = COLOR_OKBLUE + """
-
-Copyright 2009-2014 Michal Sadowski (sq6jnx at hamradio dot pl)
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
------------------------------------------------------------
-
-You can find full list of contributors on github.com/sq6jnx/sr0wx.py
-
-""" + COLOR_ENDC
-
 #
 #
 # ********
@@ -62,7 +28,6 @@ You can find full list of contributors on github.com/sq6jnx/sr0wx.py
 # SR0WX consists quite a lot of independent files so I (SQ6JNX) suggest
 # reading other manuals (mainly configuration- and internationalization
 # manual) in the same time as reading this one. Really.
-#
 # ============
 # Requirements
 # ============
@@ -77,15 +42,53 @@ import numpy
 import urllib.request, urllib.error, urllib.parse
 import socket
 
+import argparse
+from colorama import Fore, Style
+
+from hw.ptt import PTT
 
 # ``os``, ``sys`` and ``time`` doesn't need further explanation, these are
-# syandard Python packages.
+# standard Python packages.
 #
 # ``pygame`` [#]_ is a library helpful for game development, this project
 # uses it for reading (playing) sound samples. ``config`` is just a
 # SR0WX configuration file, and it is described separately.
 #
 # ..[#] www.pygame.org
+
+COLOR_HEADER = Fore.LIGHTMAGENTA_EX
+COLOR_OKBLUE = Fore.BLUE
+COLOR_OKGREEN = Fore.GREEN
+COLOR_WARNING = Fore.YELLOW
+COLOR_FAIL = Fore.RED
+COLOR_BOLD = Style.BRIGHT
+COLOR_UNDERLINE = '\033[4m'
+COLOR_ENDC = Style.RESET_ALL
+
+LICENSE = """
+
+Copyright 2009-2014 Michal Sadowski (sq6jnx at hamradio dot pl)
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+-----------------------------------------------------------
+
+You can find full list of contributors on github.com/sq6jnx/sr0wx.py
+
+"""
+
+
+#
 #
 # =========
 # Let's go!
@@ -124,8 +127,6 @@ def my_import(name):
 
 #
 # All datas returned by SR0WX modules will be stored in ``data`` variable.
-
-message = " "
 
 # Information about which modules are to be executed is written in SR0WX
 # config file. Program starts every single of them and appends its return
@@ -180,7 +181,7 @@ def play_ctcss(freq):
                        range(0, 16000)]).astype(numpy.int16)
     arr2 = numpy.c_[arr, arr]
     ctcss = pygame.sndarray.make_sound(arr2)
-    logger.info(COLOR_WARNING + "CTCSS tone %.1fHz" + COLOR_ENDC + "\n", freq)
+    logger.info(COLOR_WARNING + "Playing CTCSS tone %.1fHz" + COLOR_ENDC + "\n", freq)
     ctcss.play(-1)
 
 
@@ -193,7 +194,7 @@ def prepare_sample_dictionary():
 
             if el != "_" and el not in sound_samples:
                 if not os.path.isfile(config.lang + "/" + el + ".ogg"):
-                    logger.warn(COLOR_FAIL + "Couldn't find %s" % (config.lang + "/" + el + ".ogg" + COLOR_ENDC))
+                    logger.warning(COLOR_FAIL + "Couldn't find %s" % (config.lang + "/" + el + ".ogg" + COLOR_ENDC))
                     sound_samples[el] = pygame.mixer.Sound(config.lang + "/beep.ogg")
                 else:
                     sound_samples[el] = pygame.mixer.Sound(config.lang + "/" + el + ".ogg")
@@ -201,38 +202,9 @@ def prepare_sample_dictionary():
             logger.error("Unsupported sample type: %s (sample %s)", type(el), el)
     return sound_samples
 
-# TODO: make it a class
-ser = None
-def press_ptt():
-    global ser
-    import serial
-    try:
-        ser = serial.Serial(config.serial_port, config.serial_baud_rate)
-        if config.serial_signal == 'DTR':
-            logger.info(COLOR_OKGREEN + "DTR/PTT set to ON\n" + COLOR_ENDC)
-            ser.dtr = True
-            ser.rts = False
-        else:
-            logger.info(COLOR_OKGREEN + "RTS/PTT set to ON\n" + COLOR_ENDC)
-            ser.dtr = False
-            ser.rts = True
-    except serial.SerialException:
-        log = COLOR_FAIL + "Failed to open serial port %s@%i\n" + COLOR_ENDC
-        logger.error(log, config.serial_port, config.serial_baud_rate)
-
-
-def release_ptt():
-    # If we've opened serial it's now time to close it.
-    try:
-        if not args.test_mode and config.serial_port is not None:
-            ser.close()
-            logger.info(COLOR_OKGREEN + "RTS/PTT set to OFF\n" + COLOR_ENDC)
-    except NameError:
-        # sudo gpasswd --add ${USER} dialout
-        logger.exception(COLOR_FAIL + "Couldn't close serial port" + COLOR_ENDC)
-
 
 if __name__ == "__main__":
+    message = " "
     args = parse_args()
 
     if args.config:
@@ -243,21 +215,21 @@ if __name__ == "__main__":
     logger = setup_logging(config, debug=args.debug)
 
     logger.info(COLOR_WARNING + "sr0wx.py started" + COLOR_ENDC)
-    logger.info(LICENSE)
-    if args.test_mode:
-        logger.info("Test mode enabled, skipping serial port usage")
+    logger.info(Fore.BLUE + LICENSE + Style.RESET_ALL)
+
+    ptt = PTT(config.serial_port, config.serial_baud_rate, config.serial_signal, args.test_mode)
 
     modules = config.modules
-    logger.debug("Załadowane moduły: %s", modules)
+    logger.debug("Loaded modules: %s", modules)
     if args.modules:
         modules = [m for m in modules if m.__module__ in args.modules]
-    logger.debug("Używane moduły: %s", modules)
+    logger.debug("Used modules: %s", modules)
 
     is_connected = test_internet_connection()
     if not is_connected:
         modules = []
         message += " ".join(config.data_sources_error_msg)
-        logger.error(COLOR_FAIL + "Brak połączenia z internetem" + COLOR_ENDC + "\n")
+        logger.error(f"{COLOR_FAIL}No internet connection{COLOR_ENDC}\n")
 
     lang = my_import('.'.join((config.lang, config.lang)))
     sources = [lang.source, ]
@@ -300,15 +272,13 @@ if __name__ == "__main__":
 
     logger.info("playlist elements: %s", " ".join(playlist) + "\n")
     logger.info("loading sound samples...")
-    logger.info("playing sound samples\n")
 
     sound_samples = prepare_sample_dictionary()
 
     # Program should be able to "press PTT" via RSS232. See ``config`` for
     # details.
 
-    if not args.test_mode and config.serial_port is not None:
-        press_ptt()
+    ptt.press()
 
     pygame.time.delay(1000)
 
@@ -321,8 +291,11 @@ if __name__ == "__main__":
     # Unfortunately, there may be some pauses between samples so "reading
     # aloud" will be less natural.
 
+    logger.info("playing sound samples\n")
+    voice_channel = None
     for el in message:
         # print el # wyświetlanie nazw próbek
+        logger.debug("Sample: %s", el)
         if el == "_":
             # pause
             pygame.time.wait(500)
@@ -340,8 +313,11 @@ if __name__ == "__main__":
                 voice_channel = sound.play()
             else:
                 logger.error("Unsupported sample type: %s (sample %s)", type(el), el)
-            while voice_channel.get_busy():
-                pygame.time.Clock().tick(25)
+
+            if voice_channel:
+                # wait until playback finishes
+                while voice_channel.get_busy():
+                    pygame.time.Clock().tick(25)
 
     # Possibly the argument of ``pygame.time.Clock().tick()`` should be in
     # config file...
@@ -350,11 +326,11 @@ if __name__ == "__main__":
     # other stuff) before closing the ``pygame`` mixer and display some debug
     # informations.
 
-    logger.info(COLOR_WARNING + "finishing...\n" + COLOR_ENDC)
+    logger.info(COLOR_WARNING + "finishing in 1 second...\n" + COLOR_ENDC)
 
     pygame.time.delay(1000)
 
-    release_ptt()
+    ptt.release()
 
     logger.info(COLOR_WARNING + "goodbye" + COLOR_ENDC)
 
