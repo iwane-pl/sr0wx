@@ -35,6 +35,7 @@
 # SR0WX (core) requires the following packages:
 
 import contextlib
+import importlib
 import os
 import pygame
 import logging, logging.handlers
@@ -194,10 +195,10 @@ def prepare_sample_dictionary():
                 sound_samples[el] = pygame.mixer.Sound(el.removeprefix("file://"))
 
             if el != "_" and el not in sound_samples:
-                sample_path = os.path.join(config.lang, f"{el}.ogg")
+                sample_path = os.path.join("assets", config.lang, f"{el}.ogg")
                 if not os.path.isfile(sample_path):
                     logger.warning(f"{COLOR_FAIL}Couldn't find %s{COLOR_ENDC}", sample_path)
-                    sound_samples[el] = pygame.mixer.Sound(os.path.join(config.lang, "beep.ogg"))
+                    sound_samples[el] = pygame.mixer.Sound(os.path.join("assets", config.lang, "beep.ogg"))
                 else:
                     sound_samples[el] = pygame.mixer.Sound(sample_path)
         else:
@@ -210,7 +211,7 @@ if __name__ == "__main__":
     args = parse_args()
 
     if args.config:
-        config = __import__(os.path.splitext(args.config)[0])
+        config = importlib.import_module(os.path.splitext(args.config)[0])
     if config is None:
         import config
 
@@ -233,8 +234,9 @@ if __name__ == "__main__":
         message += " ".join(config.data_sources_error_msg)
         logger.error(f"{COLOR_FAIL}No internet connection{COLOR_ENDC}\n")
 
-    lang = my_import('.'.join((config.lang, config.lang)))
-    sources = [lang.source, ]
+    sources = []
+    # lang = my_import('.'.join((config.lang, config.lang)))
+    # sources = [lang.source, ]
 
     message = collect_messages(modules)
 
