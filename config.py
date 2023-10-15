@@ -61,7 +61,7 @@ serial_baud_rate = 9600
 serial_signal = 'DTR' # lub 'RTS'
 
 
-import pl_google.pl_google as pl_google
+import speech.pl_google as pl_google
 lang = "pl_google"
 pygame_bug = 0
 
