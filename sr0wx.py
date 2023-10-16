@@ -39,9 +39,15 @@ import importlib
 import os
 import pygame
 import logging, logging.handlers
+import logging.config
 import numpy
 import urllib.request, urllib.error, urllib.parse
 import socket
+
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
 
 import argparse
 from colorama import Fore, Style
@@ -100,20 +106,15 @@ You can find full list of contributors on github.com/sq6jnx/sr0wx.py
 
 # Logging configuration
 def setup_logging(config, debug=False):
-    # create formatter and add it to the handlers
-    formatter = logging.Formatter(config.log_line_format)
-
-    # Creating logger with the lowest log level in config handlers
-    min_log_level = logging.DEBUG if debug else min([h['log_level'] for h in config.log_handlers])
+    config['version'] = 1
+    # TODO: delete when module is refactored to load plugins after setup
+    config['disable_existing_loggers'] = False
+    logging.config.dictConfig(config)
     logger = logging.getLogger()
-    logger.setLevel(min_log_level)
-
-    # create logging handlers according to its definitions
-    for handler_definition in config.log_handlers:
-        handler = handler_definition['class'](**handler_definition['config'])
-        handler.setLevel(logging.DEBUG if debug else handler_definition['log_level'])
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
+    if debug:
+        logger.setLevel(logging.DEBUG)
+        for hnd in logger.handlers:
+            hnd.setLevel(logging.DEBUG)
 
     return logger
 
@@ -162,6 +163,7 @@ def test_internet_connection():
 
 def collect_messages(modules):
     message = " "
+    sources = []
     for module in modules:
         try:
             logger.info(COLOR_OKGREEN + "starting %s..." + COLOR_ENDC, module)
@@ -174,7 +176,7 @@ def collect_messages(modules):
                 sources.append(module_data['source'])
         except Exception:
             logger.exception(COLOR_FAIL + "Exception when running %s" + COLOR_ENDC, module)
-    return message
+    return message, sources
 
 
 def play_ctcss(freq):
@@ -210,17 +212,27 @@ if __name__ == "__main__":
     message = " "
     args = parse_args()
 
+    config_toml_path = 'config.toml'
     if args.config:
         config = importlib.import_module(os.path.splitext(args.config)[0])
+        # config_toml_path = args.config
+
     if config is None:
         import config
 
-    logger = setup_logging(config, debug=args.debug)
+    with open(config_toml_path, 'rb') as f:
+        cfg_data = tomllib.load(f)
+
+    logger = setup_logging(cfg_data['log'], debug=args.debug)
 
     logger.info(f"{COLOR_WARNING}sr0wx.py started{COLOR_ENDC}")
     logger.info(f"{Fore.BLUE}{LICENSE}{Style.RESET_ALL}")
 
-    ptt = PTT(config.serial_port, config.serial_baud_rate, config.serial_signal, args.test_mode)
+    ptt = PTT(cfg_data['serial']['port'],
+              cfg_data['serial']['baudrate'],
+              cfg_data['serial']['ptt_signal'],
+              args.test_mode,
+              )
 
     modules = config.modules
     logger.debug("Loaded modules: %s", modules)
@@ -234,11 +246,11 @@ if __name__ == "__main__":
         message += " ".join(config.data_sources_error_msg)
         logger.error(f"{COLOR_FAIL}No internet connection{COLOR_ENDC}\n")
 
-    sources = []
+    # sources = []
     # lang = my_import('.'.join((config.lang, config.lang)))
     # sources = [lang.source, ]
 
-    message = collect_messages(modules)
+    message, sources = collect_messages(modules)
 
     # When all the modules finished its work it's time to ``.split()`` returned
     # data. Every element of returned list is actually a filename of a sample.
@@ -271,8 +283,8 @@ if __name__ == "__main__":
         else:
             playlist.append("[sndarray]")
 
-    if hasattr(config, 'ctcss_tone'):
-        play_ctcss(config.ctcss_tone)
+    if 'ctcss' in cfg_data:
+        play_ctcss(cfg_data['ctcss']['tone'])
 
     logger.info("playlist elements: %s", " ".join(playlist) + "\n")
     logger.info("loading sound samples...")
