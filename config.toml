@@ -1,0 +1,34 @@
+[playback]
+# TODO: how should it work?
+read_sources = false
+
+[serial]
+port = '/dev/ttyS0'
+baudrate = 9600
+ptt_signal = 'DTR'  # or 'RTS'
+
+[ctcss]
+tone = 88.5
+
+[log.formatters.standard]
+format = "%(asctime)s %(name)s %(levelname)s: %(message)s"
+
+[log.handlers.console]
+class = "logging.StreamHandler"
+formatter = "standard"
+level = "INFO"
+
+[log.handlers.logfile]
+class = "logging.handlers.TimedRotatingFileHandler"
+level = "DEBUG"
+formatter = "standard"
+filename = 'sr0wx.log'
+when = 'D'
+interval = 1
+backupCount = 30
+delay = true
+utc = true
+
+[log.loggers.'']
+handlers = ['console', 'logfile']
+level = "DEBUG"
