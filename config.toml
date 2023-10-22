@@ -1,3 +1,7 @@
+[options]
+language = 'pl_google'
+pygame_bugfix = false
+
 [playback]
 # TODO: how should it work?
 read_sources = false
@@ -9,6 +13,77 @@ ptt_signal = 'DTR'  # or 'RTS'
 
 [ctcss]
 tone = 88.5
+
+[location]
+latitude = 54.655245
+longitude = 19.268097
+above_sea_level = 225
+above_ground_level = 20
+station_range = 65
+
+[plugins]
+[plugins.activity_map]
+enabled = true
+service_url = "http://wx.ostol.pl/map_requests?base="
+callsign = "TEST"
+hour_quarter = 10
+additional_info = "Eksperymentalna stacja pogodowa"
+
+[plugins.openweather]
+# https://openweathermap.org/api pod tym adresem można uzyskac klucz API
+# wystarczy sie zarejestrować
+enabled = true
+service_url = 'http://api.openweathermap.org/data/2.5/'
+# TODO: take it from an envvar
+api_key = 'ee78911a0fb560b58144230f46e0d4b2'
+
+[plugins.imgw_podest]
+# TODO: Remove dependency on php
+enabled = true
+
+[plugins.air_pollution]
+enabled = true
+service_url = "http://api.gios.gov.pl/pjp-api/rest/"
+# LISTA STACJI Z NUMERAMI Z CAŁEJ POLSKI
+# http://api.gios.gov.pl/pjp-api/rest/station/findAll
+
+# poniższe TYLKO DLA KRAKOWA!!!!!
+# do station_id wpada co 20 minut inna cyfra z przedziału 0,1,2
+# dzięki czemu za każdym razem wybieramy inną stację pomiarową
+# station_id = 400 + (int(datetime.now().strftime('%M')))/20,
+station_id = 402
+
+[plugins.airly]
+enabled = false
+service_url = 'https://airapi.airly.eu/v2/measurements'  # location
+mode = 'nearest'  # point|nearest|installationId
+maxDistanceKM = 5
+installationId = 8077  # Mikołajska Kraków
+# TODO: take it from an envvar
+api_key = '02b3a79363c3497dbb992093cd9d7779'
+
+[plugins.geo_magnetic]
+enabled = true
+service_url = "https://www.gismeteo.pl/weather-krakow-3212/gm/"
+
+[plugins.radioactive]
+enabled = true
+service_url = "http://radioactiveathome.org/map/"
+sensor_id = 12521  # Opole
+
+[plugins.vhf_tropo]
+enabled = true
+service_url = "https://www.dxinfocentre.com/tropo_eur.html"
+
+[plugins.propagation]
+enabled = true
+service_url = "https://rigreference.com/solar/img/tall"
+
+[plugins.calendar]
+enabled = true
+service_url = "http://calendar.zoznam.sk/sunset-pl.php?city="
+city_id = 3094802  # Kraków
+
 
 [log.formatters.standard]
 format = "%(asctime)s %(name)s %(levelname)s: %(message)s"

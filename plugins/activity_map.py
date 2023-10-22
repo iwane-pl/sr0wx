@@ -41,9 +41,10 @@ Parameters:
     - `additional_info`: additional information to show on website
     - `service_url`: mapping service url, defaults to SQ9ATK service
     """
+
     def __init__(self, callsign, latitude, longitude, hour_quarter,
                  above_sea_level, above_ground_level, station_range,
-                 additional_info="", service_url=""):
+                 additional_info="", service_url="", **kwargs):
         self.__callsign = callsign
         self.__latitude = latitude
         self.__longitude = longitude
@@ -80,7 +81,6 @@ Parameters:
 
         self.__logger.info("::: Odpytuję adres: " + url)
 
-
         try:
             request = urllib.request.Request(url)
             webFile = urllib.request.urlopen(request, None, 5)
@@ -97,3 +97,7 @@ Parameters:
             self.__logger.error("Connection error", exc_info=e)
         except socket.timeout:
             self.__logger.error("Connection timed out!")
+
+
+def create(config):
+    return ActivityMap(**config)

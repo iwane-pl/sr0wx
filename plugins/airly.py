@@ -13,7 +13,7 @@ from sr0wx_module import SR0WXModule
 class AirlySq9atk(SR0WXModule):
     """Klasa pobierająca dane o zanieszczyszczeniach"""
 
-    def __init__(self, language, api_key, lat, lon, service_url, mode, maxDistanceKM, installationId):
+    def __init__(self, language, api_key, lat, lon, service_url, mode, maxDistanceKM, installationId, **kwargs):
         self.__language = language
         self.__api_key = api_key
         self.__lat = str(lat)
@@ -103,3 +103,7 @@ class AirlySq9atk(SR0WXModule):
         msg = ' _ ';
         msg += ' widocznosc ' + self.__language.read_distance(int(value / 1000))
         return msg
+
+
+def create(config):
+    return AirlySq9atk(**config)

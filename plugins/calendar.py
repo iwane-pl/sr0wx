@@ -13,7 +13,7 @@ from sr0wx_module import SR0WXModule
 class CalendarSq9atk(SR0WXModule):
     """Klasa pobierająca dane kalendarzowe"""
 
-    def __init__(self, language, service_url, city_id=3094802):
+    def __init__(self, language, service_url, city_id=3094802, **kwargs):
         self.__service_url = service_url
         self.__city_id = city_id
         self.__language = language
@@ -57,3 +57,7 @@ class CalendarSq9atk(SR0WXModule):
             "message": message,
             "source": "calendar_zoznam_sk",
         }
+
+
+def create(config):
+    return CalendarSq9atk(**config)

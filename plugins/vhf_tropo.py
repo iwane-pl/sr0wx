@@ -11,10 +11,11 @@ from pprint import pprint
 
 from sr0wx_module import SR0WXModule
 
+
 class VhfTropoSq9atk(SR0WXModule):
     """Klasa pobierająca dane kalendarzowe"""
 
-    def __init__(self, language, service_url, qthLon, qthLat):
+    def __init__(self, language, service_url, longitude, latitude, **kwargs):
         self.__service_url = service_url
         self.__language = language
         self.__logger = logging.getLogger(__name__)
@@ -22,8 +23,8 @@ class VhfTropoSq9atk(SR0WXModule):
         self.__areaSize = 70
         self.__colorSampleScatter = 5
 
-        self.__qthLon = float(qthLon)
-        self.__qthLat = float(qthLat)
+        self.__qthLon = float(longitude)
+        self.__qthLat = float(latitude)
 
         self.__mapLonStart = float(-10)
         self.__mapLonEnd = float(40)
@@ -67,7 +68,6 @@ class VhfTropoSq9atk(SR0WXModule):
             print(("Błąd pobierania mapy: %s" % e))
         return
 
-
     def readMapImageFile(self, fileName):
 
         mapImg = Image.open(fileName, 'r')
@@ -84,8 +84,8 @@ class VhfTropoSq9atk(SR0WXModule):
         self.__logger.info("::: Przetwarzam dane...")
         imgWidth = float(imgWidth)
         imgHeight = float(imgHeight)
-        lonRange =  self.__mapLonEnd - self.__mapLonStart
-        latRange =  self.__mapLatEnd - self.__mapLatStart
+        lonRange = self.__mapLonEnd - self.__mapLonStart
+        latRange = self.__mapLatEnd - self.__mapLatStart
         lonMod = (imgWidth / lonRange)
         latMod = (imgHeight / latRange)
         pixelY = round(latMod * (lat - self.__mapLatStart))
@@ -144,19 +144,19 @@ class VhfTropoSq9atk(SR0WXModule):
 
     def getColorPunctation(self, colorHex):
         colors = {
-            '#141414' : 0.00,  #czarny
-            '#8200dc' : 1.00,  #fioletowy
-            '#3377ff' : 2.00,  #błękitny
-            '#02d0a1' : 3.00,  #pistacjowy
-            '#a0e632' : 4.00,  #cytrynowy
-            '#e6dc32' : 5.00,  #żółty
-            '#e6af2d' : 6.00,  #musztardowy
-            '#f08228' : 7.00,  #pomarańczowy
-            '#fa3c3c' : 8.00,  #czerwony
-            '#ff80c0' : 9.00,  #różowy
-            '#ffb4dc' : 10.00, #różowy pastelowy
-            '#cc86cc' : 11.00, #różowy szary
-            '#c0c0c0' : 12.00  #szary
+            '#141414': 0.00,  # czarny
+            '#8200dc': 1.00,  # fioletowy
+            '#3377ff': 2.00,  # błękitny
+            '#02d0a1': 3.00,  # pistacjowy
+            '#a0e632': 4.00,  # cytrynowy
+            '#e6dc32': 5.00,  # żółty
+            '#e6af2d': 6.00,  # musztardowy
+            '#f08228': 7.00,  # pomarańczowy
+            '#fa3c3c': 8.00,  # czerwony
+            '#ff80c0': 9.00,  # różowy
+            '#ffb4dc': 10.00,  # różowy pastelowy
+            '#cc86cc': 11.00,  # różowy szary
+            '#c0c0c0': 12.00  # szary
         }
 
         result = False
@@ -190,20 +190,19 @@ class VhfTropoSq9atk(SR0WXModule):
         return locationConditionValue
 
     def getDirectionalConditions(self, mapImg, x, y):
-        shift = self.__areaSize/2
+        shift = self.__areaSize / 2
         shift = self.__areaSize
 
         return {
-            'N' :    self.getLocationCondition(mapImg, x, y-shift),
-            'NE' :   self.getLocationCondition(mapImg, x+shift, y-shift),
-            'E' :    self.getLocationCondition(mapImg, x+shift, y),
-            'SE' :    self.getLocationCondition(mapImg, x+shift, y+shift),
-            'S' :    self.getLocationCondition(mapImg, x, y+shift),
-            'SW' :    self.getLocationCondition(mapImg, x-shift, y+shift),
-            'W' :    self.getLocationCondition(mapImg, x-shift, y),
-            'NW' :    self.getLocationCondition(mapImg, x-shift, y-shift),
+            'N': self.getLocationCondition(mapImg, x, y - shift),
+            'NE': self.getLocationCondition(mapImg, x + shift, y - shift),
+            'E': self.getLocationCondition(mapImg, x + shift, y),
+            'SE': self.getLocationCondition(mapImg, x + shift, y + shift),
+            'S': self.getLocationCondition(mapImg, x, y + shift),
+            'SW': self.getLocationCondition(mapImg, x - shift, y + shift),
+            'W': self.getLocationCondition(mapImg, x - shift, y),
+            'NW': self.getLocationCondition(mapImg, x - shift, y - shift),
         }
-
 
     def getTopDirectionsValues(self, input_table):
         filtered_rows = []
@@ -238,10 +237,9 @@ class VhfTropoSq9atk(SR0WXModule):
             message = ' vhf_uwaga vhf_warunki_podwyzszone _ ' + message
         if mainConditionValue > 0.5:
             message += ' vhf_najlepsze_warunki_w_kierunku '
-            message += " _ ".join( self.getTopDirectionsValues(directionalConditionsValues))
+            message += " _ ".join(self.getTopDirectionsValues(directionalConditionsValues))
 
         return message
-
 
     def get_data(self):
         html = self.getHtmlFromUrl(self.__service_url)
@@ -260,7 +258,7 @@ class VhfTropoSq9atk(SR0WXModule):
 
         message = " ".join([
             " _ vhf_propagacja_w_pasmie_vhf _ ",
-            "   " . join([ self.prepareMessage(mainConditionValue, directionalConditionsValues) ]),
+            "   ".join([self.prepareMessage(mainConditionValue, directionalConditionsValues)]),
             " _ "
         ])
 
@@ -268,3 +266,7 @@ class VhfTropoSq9atk(SR0WXModule):
             "message": message,
             "source": "vhf_dx_info_center",
         }
+
+
+def create(config):
+    return VhfTropoSq9atk(**config)

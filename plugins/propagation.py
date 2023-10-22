@@ -14,7 +14,7 @@ from sr0wx_module import SR0WXModule
 class PropagationSq9atk(SR0WXModule):
     """Klasa pobierająca dane kalendarzowe"""
 
-    def __init__(self, language, service_url):
+    def __init__(self, language, service_url, **kwargs):
         self.__service_url = service_url
         self.__language = language
         self.__logger = logging.getLogger(__name__)
@@ -105,3 +105,7 @@ class PropagationSq9atk(SR0WXModule):
             "message": message,
             "source": "noaa",
         }
+
+
+def create(config):
+    return PropagationSq9atk(**config)
