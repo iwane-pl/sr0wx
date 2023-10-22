@@ -1,6 +1,6 @@
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
-
+import os.path
 #   Copyright 2009-2012 Michal Sadowski (sq6jnx at hamradio dot pl)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,14 +23,20 @@ import logging
 import base64
 import subprocess
 
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
+
 from sr0wx_module import SR0WXModule
 
 
 class ImgwPodestSq9atk(SR0WXModule):
     """Klasa przetwarza dane informujące o przekroczeniach stanów rzek w regionie."""
 
-    def __init__(self, wodowskazy):
-        self.__wodowskazy = wodowskazy
+    def __init__(self, **kwargs):
+        with open(os.path.join('assets', 'wodowskazy.toml'), 'rb') as f:
+            self.__wodowskazy = tomllib.load(f)
         self.__logger = logging.getLogger(__name__)
         self._dane_wodowskazow = {}
 
@@ -39,7 +45,8 @@ class ImgwPodestSq9atk(SR0WXModule):
         try:
             jsonData = json.dumps(self.__wodowskazy, separators=(',', ':'))
             b64data = base64.urlsafe_b64encode(jsonData.encode('utf-8'))
-            proc = subprocess.Popen("php imgw_podest_sq9atk.php " + b64data.decode('ascii'), shell=True, stdout=subprocess.PIPE)
+            proc = subprocess.Popen("php imgw_podest_sq9atk.php " + b64data.decode('ascii'), shell=True,
+                                    stdout=subprocess.PIPE)
 
             dane = proc.stdout.read()
             self.__logger.info("::: Przetwarzam...")
@@ -140,7 +147,8 @@ class ImgwPodestSq9atk(SR0WXModule):
 
                     message += ' przekroczenia_stanow_alarmowych '
                     for rzeka in sorted(stanyAlarmowe.keys()):
-                        message += ' rzeka %s wodowskaz %s ' % (rzeka, " wodowskaz ".join(sorted(stanyAlarmowe[rzeka])),)
+                        message += ' rzeka %s wodowskaz %s ' % (
+                        rzeka, " wodowskaz ".join(sorted(stanyAlarmowe[rzeka])),)
 
                 if stanyOstrzegawcze != {}:
                     message += '_ przekroczenia_stanow_ostrzegawczych '
@@ -156,3 +164,7 @@ class ImgwPodestSq9atk(SR0WXModule):
             "message": message,
             "source": "imgw",
         }
+
+
+def create(config):
+    return ImgwPodestSq9atk(**config)

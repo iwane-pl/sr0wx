@@ -11,7 +11,7 @@ from sr0wx_module import SR0WXModule
 class RadioactiveSq9atk(SR0WXModule):
     """Klasa pobierająca dane o promieniowaniu"""
 
-    def __init__(self, language, service_url, sensor_id):
+    def __init__(self, language, service_url, sensor_id, **kwargs):
         self.__service_url = service_url
         self.__sensor_id = sensor_id
         self.__language = language
@@ -92,3 +92,6 @@ class RadioactiveSq9atk(SR0WXModule):
             "message": message,
             "source": "radioactiveathome_org",
         }
+
+def create(config):
+    return RadioactiveSq9atk(**config)

@@ -17,7 +17,7 @@ from sr0wx_module import SR0WXModule
 class AirPollutionSq9atk(SR0WXModule):
     """Klasa pobierająca info o zanieczyszczeniach powietrza"""
 
-    def __init__(self, language, service_url, city_id=1, station_id=3):
+    def __init__(self, language, service_url, city_id=1, station_id=3, **kwargs):
         self.__language = language
         self.__service_url = service_url
         self.__station_id = station_id
@@ -123,3 +123,7 @@ class AirPollutionSq9atk(SR0WXModule):
             "message": message,
             "source": "powietrze_malopolska_pl",
         }
+
+
+def create(config):
+    return AirPollutionSq9atk(**config)

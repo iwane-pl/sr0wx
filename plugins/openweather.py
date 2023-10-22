@@ -13,11 +13,11 @@ from sr0wx_module import SR0WXModule
 class OpenWeatherSq9atk(SR0WXModule):
     """Klasa pobierająca dane o promieniowaniu"""
 
-    def __init__(self, language, api_key, lat, lon, service_url):
+    def __init__(self, language, api_key, latitude, longitude, service_url, **kwargs):
 
         self.__service_url = service_url
-        self.__lat = lat
-        self.__lon = lon
+        self.__lat = latitude
+        self.__lon = longitude
         self.__api_key = api_key
         self.__language = language
         self.__logger = logging.getLogger(__name__)
@@ -171,7 +171,7 @@ class OpenWeatherSq9atk(SR0WXModule):
             self.getMainConditions(weatherJson['main']),
             # self.getVisibility( weatherJson['visibility'] ),
             self.getWind(weatherJson['wind']),
-            ])
+        ])
 
         forecastJson = forecastJsonAll['list'][1]
         message += "".join([
@@ -180,7 +180,7 @@ class OpenWeatherSq9atk(SR0WXModule):
             self.getClouds(forecastJson['clouds']),
             self.getMainConditions(forecastJson['main']),
             self.getWind(forecastJson['wind']),
-            ])
+        ])
 
         forecastJson = forecastJsonAll['list'][4]
         message += "".join([
@@ -189,7 +189,7 @@ class OpenWeatherSq9atk(SR0WXModule):
             self.getClouds(forecastJson['clouds']),
             self.getMainConditions(forecastJson['main']),
             self.getWind(forecastJson['wind']),
-            ])
+        ])
 
         self.__logger.info("::: Przetwarzam dane...\n")
 
@@ -197,3 +197,7 @@ class OpenWeatherSq9atk(SR0WXModule):
             "message": message,
             "source": "open_weather_map",
         }
+
+
+def create(config):
+    return OpenWeatherSq9atk(**config)

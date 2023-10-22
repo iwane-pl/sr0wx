@@ -52,6 +52,7 @@ except ImportError:
 import argparse
 from colorama import Fore, Style
 
+import config
 from hw.ptt import PTT
 
 # ``os``, ``sys`` and ``time`` doesn't need further explanation, these are
@@ -139,16 +140,16 @@ def my_import(name):
 #
 # Modules may be also given in commandline, separated by a comma.
 
-config = None
+cfg_data = None
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--config", help="Path to an alternate config.py file")
+    parser.add_argument("-c", "--config", help="Path to an alternate config.toml file")
     parser.add_argument("-d", "--debug", action='store_true', help="Enable debug logging")
     parser.add_argument("-t", "--test-mode", action='store_true',
                         help="Enable test mode (disables serial port operations)")
-    parser.add_argument("modules", metavar='MOD', nargs='*')
+    parser.add_argument("modules", metavar='MOD', nargs='*', help="Limit modules to use")
     args = parser.parse_args()
     return args
 
@@ -197,10 +198,11 @@ def prepare_sample_dictionary():
                 sound_samples[el] = pygame.mixer.Sound(el.removeprefix("file://"))
 
             if el != "_" and el not in sound_samples:
-                sample_path = os.path.join("assets", config.lang, f"{el}.ogg")
+                sample_path = os.path.join("assets", cfg_data['options']['language'], f"{el}.ogg")
                 if not os.path.isfile(sample_path):
                     logger.warning(f"{COLOR_FAIL}Couldn't find %s{COLOR_ENDC}", sample_path)
-                    sound_samples[el] = pygame.mixer.Sound(os.path.join("assets", config.lang, "beep.ogg"))
+                    sound_samples[el] = pygame.mixer.Sound(
+                        os.path.join("assets", cfg_data['options']['language'], "beep.ogg"))
                 else:
                     sound_samples[el] = pygame.mixer.Sound(sample_path)
         else:
@@ -214,11 +216,7 @@ if __name__ == "__main__":
 
     config_toml_path = 'config.toml'
     if args.config:
-        config = importlib.import_module(os.path.splitext(args.config)[0])
-        # config_toml_path = args.config
-
-    if config is None:
-        import config
+        config_toml_path = args.config
 
     with open(config_toml_path, 'rb') as f:
         cfg_data = tomllib.load(f)
@@ -234,7 +232,18 @@ if __name__ == "__main__":
               args.test_mode,
               )
 
-    modules = config.modules
+    lang_module = importlib.import_module(f"speech.{cfg_data['options']['language']}")
+
+    modules = []
+    for name, plugin_config in cfg_data['plugins'].items():
+        if plugin_config['enabled']:
+            m = importlib.import_module(f"plugins.{name}")
+            combined_config = cfg_data['location'].copy()
+            combined_config['language'] = lang_module
+            combined_config.update(plugin_config)
+            plugin = m.create(combined_config)
+            modules.append(plugin)
+
     logger.debug("Loaded modules: %s", modules)
     if args.modules:
         modules = [m for m in modules if m.__module__ in args.modules]

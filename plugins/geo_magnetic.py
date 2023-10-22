@@ -12,7 +12,7 @@ from sr0wx_module import SR0WXModule
 class GeoMagneticSq9atk(SR0WXModule):
     """Klasa pobierająca info o sytuacji geomagnetycznej"""
 
-    def __init__(self, language, service_url):
+    def __init__(self, language, service_url, **kwargs):
         self.__language = language
         self.__service_url = service_url
         self.__logger = logging.getLogger(__name__)
@@ -117,3 +117,6 @@ class GeoMagneticSq9atk(SR0WXModule):
             "message": message + "_",
             "source": "gis_meteo",
         }
+
+def create(config):
+    return GeoMagneticSq9atk(**config)
