@@ -62,22 +62,9 @@ class PropagationSq9atk(SR0WXModule):
                 rgba = imageData[x, y]
                 color = self.rgb2hex(rgba[:3])
 
-                # można zaremowac wybraną grupę aby nie podawać info o konkretnych warunkach
-                if self.__levels[color] == 'warunki_podwyzszone':
-                    string = str(band) + '_metrow' + ' ' + self.__levels[color]
-                    data[:0] = [string]
-
-                if self.__levels[color] == 'warunki_normalne':
-                    string = str(band) + '_metrow' + ' ' + self.__levels[color]
-                    data[:0] = [string]
-
-                if self.__levels[color] == 'warunki_obnizone':
-                    string = str(band) + '_metrow' + ' ' + self.__levels[color]
-                    data[:0] = [string]
-
-                if self.__levels[color] == 'pasmo_zamkniete':
-                    string = str(band) + '_metrow' + ' ' + self.__levels[color]
-                    data[:0] = [string]
+                if color in self.__levels:
+                    data.append(f"{band}_metrow")
+                    data.append(self.__levels[color])
 
             return data
         except Exception:
@@ -90,16 +77,11 @@ class PropagationSq9atk(SR0WXModule):
 
         self.__logger.info("::: Przetwarzam dane...\n")
 
-        message = " ".join([
-            " _ informacje_o_propagacji ",
-            " _ dzien _ ",
-            " _ pasma _ ",
-            " _ ".join(self.collectBandConditionsFromImage(image, 'day')),
-            " _ noc _ ",
-            " _ pasma _ ",
-            " _ ".join(self.collectBandConditionsFromImage(image, 'night')),
-            " _ "
-        ])
+        message = ["_", "informacje_o_propagacji", "_","dzien","_", "_","pasma","_",]
+        message.extend(self.collectBandConditionsFromImage(image, 'day'))
+        message.extend([    "_","noc","_", "_","pasma","_",])
+        message.extend(self.collectBandConditionsFromImage(image, 'night'))
+        message.append("_")
 
         return {
             "message": message,

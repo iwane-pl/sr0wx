@@ -92,6 +92,7 @@ class ImgwPodestSq9atk(SR0WXModule):
                 # 'przekroczenieStanuStan': stan,
                 'tendencja': tendencja}
 
+    @property
     def get_data(self):
         message = " "
 
@@ -137,28 +138,36 @@ class ImgwPodestSq9atk(SR0WXModule):
                 except KeyError:
                     self.__logger.exception("::: Brak danych dla wodowskazu %s!!! ", wodowskaz)
 
-            message = "_ _ "
+            message = ["_", "_"]
             if stanyOstrzegawcze != {} or stanyAlarmowe != {}:
-                message += 'komunikat_hydrologiczny_imgw _ '
+                message.append('komunikat_hydrologiczny_imgw')
+                message.append('_')
 
                 if stanyAlarmowe != {}:
                     # Sprawdzenie dla których wodowskazów mamy przekroczone
                     # stany alarmowe -- włącz ctcss
 
-                    message += ' przekroczenia_stanow_alarmowych '
+                    message.append('przekroczenia_stanow_alarmowych')
                     for rzeka in sorted(stanyAlarmowe.keys()):
-                        message += ' rzeka %s wodowskaz %s ' % (
-                        rzeka, " wodowskaz ".join(sorted(stanyAlarmowe[rzeka])),)
+                        message.append('rzeka')
+                        message.append(rzeka)
+                        for wodowskaz in sorted(stanyAlarmowe[rzeka]):
+                            message.append("wodowskaz")
+                            message.append(wodowskaz)
 
                 if stanyOstrzegawcze != {}:
-                    message += '_ przekroczenia_stanow_ostrzegawczych '
+                    message.append('_')
+                    message.append('przekroczenia_stanow_ostrzegawczych')
                     for rzeka in sorted(stanyOstrzegawcze.keys()):
-                        message += 'rzeka %s wodowskaz %s ' % (format(rzeka), " wodowskaz ".join(
-                            [format(w) for w in sorted(stanyOstrzegawcze[rzeka])]),)
+                        message.append('rzeka')
+                        message.append(rzeka)
+                        for wodowskaz in sorted(stanyOstrzegawcze[rzeka]):
+                            message.append('wodowskaz')
+                            message.append(format(wodowskaz))
 
             self.__logger.info("::: Przekazuję przetworzone dane...\n")
 
-            message += ' _ '
+            message.append('_')
 
         return {
             "message": message,

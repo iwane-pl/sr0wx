@@ -41,7 +41,7 @@ class AirlySq9atk(SR0WXModule):
 
         self.__logger.info("::: Przetwarzam dane...\n")
 
-        message = "".join([
+        message = [
             " _ ",
             " informacja_o_skaz_eniu_powietrza ",
             " _ ",
@@ -51,7 +51,7 @@ class AirlySq9atk(SR0WXModule):
             self.__levels[jsonData['current']['indexes'][0]['level']],
             self.getPollutionLevel(jsonData['current']['values']),
             " _ ",
-        ])
+        ]
         return {
             "message": message,
             "source": "airly",
@@ -100,7 +100,7 @@ class AirlySq9atk(SR0WXModule):
         return msg
 
     def getVisibility(self, value):
-        msg = ' _ ';
+        msg = ' _ '
         msg += ' widocznosc ' + self.__language.read_distance(int(value / 1000))
         return msg
 

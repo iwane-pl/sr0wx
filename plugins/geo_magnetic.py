@@ -100,21 +100,21 @@ class GeoMagneticSq9atk(SR0WXModule):
         values = self.getDataParsedHtmlData()
         daysValues = self.groupValuesByDays(values)
 
-        message = ' _ sytuacja_geomagnetyczna_w_regionie '
+        message = [ '_', 'sytuacja_geomagnetyczna_w_regionie' ]
 
         self.__logger.info("::: Przetwarzam dane...\n")
         for d, day in daysValues.items():
 
             if len(day) > 0:
-                message += " _ " + self.__days[d - 1] + " "
+                message += [ "_" , self.__days[d - 1]]
                 condition = self.getStrongestConditionOfDay(day)
 
-                message += self.__seasons[condition['at']] + " "
-                message += self.__conditions[int(condition['value'])] + " "
-                message += self.__fluctuations[self.getDailyFluctuation(day)] + " wahania_dobowe "
+                message += [ self.__seasons[condition['at']]]
+                message += [ self.__conditions[int(condition['value'])]]
+                message += [ self.__fluctuations[self.getDailyFluctuation(day)] , "wahania_dobowe" ]
 
         return {
-            "message": message + "_",
+            "message": message,
             "source": "gis_meteo",
         }
 

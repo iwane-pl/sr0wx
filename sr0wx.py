@@ -52,7 +52,6 @@ except ImportError:
 import argparse
 from colorama import Fore, Style
 
-import config
 from hw.ptt import PTT
 
 # ``os``, ``sys`` and ``time`` doesn't need further explanation, these are
@@ -95,6 +94,10 @@ You can find full list of contributors on github.com/sq6jnx/sr0wx.py
 
 """
 
+DATA_SOURCES_ERROR_MSG = ['_', 'zrodlo_danych_niedostepne']
+HELLO_MSG = ['_', 'tu_eksperymentalna_automatyczna_stacja_pogodowa', 'sr0wx']
+GOODBYE_MSG = ['_', 'tu_sr0wx']
+
 
 #
 #
@@ -119,16 +122,6 @@ def setup_logging(config, debug=False):
 
     return logger
 
-
-def my_import(name):
-    mod = __import__(name)
-    components = name.split('.')
-    for comp in components[1:]:
-        mod = getattr(mod, comp)
-    return mod
-
-
-#
 # All datas returned by SR0WX modules will be stored in ``data`` variable.
 
 # Information about which modules are to be executed is written in SR0WX
@@ -163,30 +156,31 @@ def test_internet_connection():
 
 
 def collect_messages(modules):
-    message = " "
+    message = []
     sources = []
     for module in modules:
         try:
-            logger.info(COLOR_OKGREEN + "starting %s..." + COLOR_ENDC, module)
+            logger.info(f"{COLOR_OKGREEN}starting %s...{COLOR_ENDC}", module)
             module_data = module.get_data()
             module_message = module_data.get("message", "")
             module_source = module_data.get("source", "")
 
-            message = " ".join((message, module_message))
+            message.extend(module_message)
             if module_message != "" and module_source != "":
                 sources.append(module_data['source'])
         except Exception:
-            logger.exception(COLOR_FAIL + "Exception when running %s" + COLOR_ENDC, module)
+            logger.exception(f"{COLOR_FAIL}Exception when running %s{COLOR_ENDC}", module)
     return message, sources
 
 
-def play_ctcss(freq):
-    volume = 25000
-    arr = numpy.array([volume * numpy.sin(2.0 * numpy.pi * round(freq) * x / 16000) for x in
-                       range(0, 16000)]).astype(numpy.int16)
+def play_ctcss(freq, volume):
+    volume = volume * 1000
+    sampling_freq = cfg_data['playback']['sampling_frequency']
+    arr = numpy.array([volume * numpy.sin(2.0 * numpy.pi * round(freq) * x / sampling_freq) for x in
+                       range(0, sampling_freq)]).astype(numpy.int16)
     arr2 = numpy.c_[arr, arr]
     ctcss = pygame.sndarray.make_sound(arr2)
-    logger.info(COLOR_WARNING + "Playing CTCSS tone %.1fHz" + COLOR_ENDC + "\n", freq)
+    logger.info(f"{COLOR_WARNING}Playing CTCSS tone %.1fHz{COLOR_ENDC}\n", freq)
     ctcss.play(-1)
 
 
@@ -211,7 +205,7 @@ def prepare_sample_dictionary():
 
 
 if __name__ == "__main__":
-    message = " "
+    message = []
     args = parse_args()
 
     config_toml_path = 'config.toml'
@@ -237,6 +231,7 @@ if __name__ == "__main__":
     modules = []
     for name, plugin_config in cfg_data['plugins'].items():
         if plugin_config['enabled']:
+            # import and configure plugin module
             m = importlib.import_module(f"plugins.{name}")
             combined_config = cfg_data['location'].copy()
             combined_config['language'] = lang_module
@@ -252,7 +247,7 @@ if __name__ == "__main__":
     is_connected = test_internet_connection()
     if not is_connected:
         modules = []
-        message += " ".join(config.data_sources_error_msg)
+        message.extend(DATA_SOURCES_ERROR_MSG)
         logger.error(f"{COLOR_FAIL}No internet connection{COLOR_ENDC}\n")
 
     # sources = []
@@ -264,19 +259,17 @@ if __name__ == "__main__":
     # When all the modules finished its work it's time to ``.split()`` returned
     # data. Every element of returned list is actually a filename of a sample.
 
-    message = config.hello_msg + message.split()
-    if hasattr(config, 'read_sources_msg'):
-        if config.read_sources_msg:
-            if len(sources) > 1:
-                message += sources
+    message = HELLO_MSG + message
+    if cfg_data['playback']['read_sources']:
+        if len(sources) > 1:
+            message.extend(sources)
     else:
-        message += sources
-    message += config.goodbye_msg
+        message.extend( sources )
+    message.extend(GOODBYE_MSG)
 
-    # It's time to init ``pygame``'s mixer (and ``pygame``). Possibly defined
-    # sound quality is far-too-good (44kHz 16bit, stereo), so you can change it.
+    # It's time to init ``pygame``'s mixer (and ``pygame``).
 
-    pygame.mixer.init(16000, -16, 2, 1024)
+    pygame.mixer.init(cfg_data['playback']['sampling_frequency'], -16, 2, 1024)
 
     # Next (as a tiny timesaver & memory eater ;) program loads all necessary
     # samples into memory. I think that this is better approach than reading
@@ -293,7 +286,7 @@ if __name__ == "__main__":
             playlist.append("[sndarray]")
 
     if 'ctcss' in cfg_data:
-        play_ctcss(cfg_data['ctcss']['tone'])
+        play_ctcss(cfg_data['ctcss']['tone'], cfg_data['ctcss']['volume'])
 
     logger.info("playlist elements: %s", " ".join(playlist) + "\n")
     logger.info("loading sound samples...")
