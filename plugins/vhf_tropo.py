@@ -219,25 +219,25 @@ class VhfTropoSq9atk(SR0WXModule):
         return keys
 
     def prepareMessage(self, mainConditionValue, directionalConditionsValues):
-        message = 'vhf_brak_szans_na_lacznosc_troposferyczna'
+        message = [ 'vhf_brak_szans_na_lacznosc_troposferyczna' ]
 
         if mainConditionValue > 0.3:
-            message = 'vhf_minimalne_szanse_na_lacznosc_troposferyczna'
+            message = [ 'vhf_minimalne_szanse_na_lacznosc_troposferyczna' ]
         if mainConditionValue > 0.5:
-            message = 'vhf_niewielkie_szanse_na_lacznosc_troposferyczna'
+            message = [ 'vhf_niewielkie_szanse_na_lacznosc_troposferyczna' ]
         if mainConditionValue > 1:
-            message = 'vhf_spore_szanse_na_lacznosc_troposferyczna'
+            message = [ 'vhf_spore_szanse_na_lacznosc_troposferyczna' ]
         if mainConditionValue > 2:
-            message = 'vhf_duze_szanse_na_lacznosc_troposferyczna'
+            message = [ 'vhf_duze_szanse_na_lacznosc_troposferyczna' ]
         if mainConditionValue > 5:
-            message = 'vhf_bardzo_duze_szanse_na_lacznosc_troposferyczna'
+            message = [ 'vhf_bardzo_duze_szanse_na_lacznosc_troposferyczna' ]
         if mainConditionValue > 8:
-            message = 'vhf_wyjatkowo_duze_szanse_na_lacznosc_troposferyczna'
+            message = [ 'vhf_wyjatkowo_duze_szanse_na_lacznosc_troposferyczna' ]
         if mainConditionValue > 3:
-            message = ' vhf_uwaga vhf_warunki_podwyzszone _ ' + message
+            message = [ 'vhf_uwaga', 'vhf_warunki_podwyzszone', '_'] + message
         if mainConditionValue > 0.5:
-            message += ' vhf_najlepsze_warunki_w_kierunku '
-            message += " _ ".join(self.getTopDirectionsValues(directionalConditionsValues))
+            message += [  'vhf_najlepsze_warunki_w_kierunku' ]
+            message += self.getTopDirectionsValues(directionalConditionsValues)
 
         return message
 
@@ -256,11 +256,10 @@ class VhfTropoSq9atk(SR0WXModule):
         mainConditionValue = self.getLocationCondition(mapImg, x, y)
         directionalConditionsValues = self.getDirectionalConditions(mapImg, x, y)
 
-        message = " ".join([
-            " _ vhf_propagacja_w_pasmie_vhf _ ",
-            "   ".join([self.prepareMessage(mainConditionValue, directionalConditionsValues)]),
-            " _ "
-        ])
+        message = ["_", "vhf_propagacja_w_pasmie_vhf", "_"]
+        message.extend(self.prepareMessage(mainConditionValue, directionalConditionsValues))
+        message.append(    "_")
+
 
         return {
             "message": message,

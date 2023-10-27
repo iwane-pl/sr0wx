@@ -91,21 +91,22 @@ class AirPollutionSq9atk(SR0WXModule):
 
     def prepareMessage(self, data):
         levels = {
-            'bardzo_dobry': 'poziom_bardzo_dobry _ ',
-            'dobry': 'poziom_dobry _ ',
-            'dostateczny': 'poziom_dostateczny _ ',
-            'umiarkowany': 'poziom_umiarkowany _ ',
-            'zly': 'poziom_zl_y _ ',  # ten jest chyba nieuzywany
-            'zl_y': 'poziom_zl_y _ ',
-            'bardzo_zly': 'poziom_bardzo_zl_y _ ',  # ten też jest chyba nieuzywany
-            'bardzo_zl_y': 'poziom_bardzo_zl_y _ ',
+            'bardzo_dobry': 'poziom_bardzo_dobry',
+            'dobry': 'poziom_dobry',
+            'dostateczny': 'poziom_dostateczny',
+            'umiarkowany': 'poziom_umiarkowany',
+            'zly': 'poziom_zl_y',  # ten jest chyba nieuzywany
+            'zl_y': 'poziom_zl_y',
+            'bardzo_zly': 'poziom_bardzo_zl_y',  # ten też jest chyba nieuzywany
+            'bardzo_zl_y': 'poziom_bardzo_zl_y',
             'empty': ''
         }
-        message = " "
-        for row in data:
-            message += " " + row[2]
-            message += " " + self.__language.read_micrograms(int(row[3]))
-            message += " " + levels[row[4]]
+        message = []
+        for _, _, gas, concentration, level, *_ in data:
+            message.append(gas)
+            message.extend(self.__language.read_micrograms(int(concentration)).split())
+            message.append(levels[level])
+            message.append("_")
         return message
 
     def get_data(self):
@@ -115,8 +116,8 @@ class AirPollutionSq9atk(SR0WXModule):
         sensorsData = self.getSensorsData()
         valuesMessage = self.prepareMessage(sensorsData)
 
-        message = " _ informacja_o_skaz_eniu_powietrza _ "
-        message += " stacja_pomiarowa " + self.safe_name(self.getStationName()) + " _ "
+        message = [ "_", "informacja_o_skaz_eniu_powietrza", "_" ]
+        message += [ "stacja_pomiarowa" , self.safe_name(self.getStationName()) , "_" ]
         message += valuesMessage
 
         return {

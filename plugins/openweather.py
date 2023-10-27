@@ -95,54 +95,60 @@ class OpenWeatherSq9atk(SR0WXModule):
         return ""
 
     def getHour(self):
+        # TODO: simplify!!
         time = ":".join([str(datetime.now().hour), str(datetime.now().minute)])
-        datetime_object = datetime.strptime(time, '%H:%M')
+        datetime_object = datetime.now().strptime(time, '%H:%M')
         time_words = self.__language.read_datetime(datetime_object, '%H %M')
-        return time_words
+        return time_words.split()
 
     def getWeather(self, json):
-        message = ' _ ';
+        message = ["_"]
         for row in json:
             if row['id'] in self.events:
-                message += ' ' + self.events[row['id']] + ' '
+                message.append(self.events[row['id']])
         return message
 
     def getClouds(self, json):
-        msg = ' ';
+        msg = []
         if json['all'] > 0:
-            msg += ' _ pokrywa_chmur ' + self.__language.read_percent(int(json['all']))
+            msg.extend([ '_', 'pokrywa_chmur',])
+            msg.extend(self.__language.read_percent(int(json['all'])).split() )
         return msg
 
     def getMainConditions(self, json):
-        msg = ' _ '
-        msg += ' temperatura ' + self.__language.read_temperature(int(json['temp']))
-        msg += ' cisnienie ' + self.__language.read_pressure(int(json['pressure']))
-        msg += ' wilgotnosc ' + self.__language.read_percent(int(json['humidity']))
+        msg = ['_']
+        msg += [ 'temperatura'  ]
+        msg.extend(self.__language.read_temperature(int(json['temp'])).split())
+        msg += [ 'cisnienie'  ]
+        msg.extend(self.__language.read_pressure(int(json['pressure'])).split())
+        msg += [ "wilgotnosc"  ]
+        msg.extend(self.__language.read_percent(int(json['humidity'])).split())
         return msg
 
     def getVisibility(self, json):
-        msg = ' _ ';
-        msg += ' widocznosc ' + self.__language.read_distance(int(json / 1000))
+        msg = [ "_" ]
+        msg += [ "widocznosc" ]
+        msg.extend(self.__language.read_distance(int(json / 1000)).split())
         return msg
 
     def getWind(self, json):
-        msg = ' _ ';
-        msg += ' predkosc_wiatru '
-        msg += ' ' + self.__language.read_speed(int(json['speed']))
-        msg += ' ' + self.__language.read_speed(int(json['speed'] / 1000 * 3600), 'kmph')
+        msg = [ "_" ]
+        msg += [ "predkosc_wiatru" ]
+        msg.extend(self.__language.read_speed(int(json['speed'])).split())
+        msg.extend(self.__language.read_speed(int(json['speed'] / 1000 * 3600), 'kmph').split())
 
         if 'deg' in json:
-            msg += ' _ wiatr '
-            if 0 <= json['deg'] <= 23:  msg += ' polnocny '
-            if 23 <= json['deg'] <= 67:  msg += ' polnocno wschodni '
-            if 67 <= json['deg'] <= 112:  msg += ' wschodni '
-            if 112 <= json['deg'] <= 157:  msg += ' poludniowo wschodni '
-            if 157 <= json['deg'] <= 202:  msg += ' poludniowy '
-            if 202 <= json['deg'] <= 247:  msg += ' poludniowo zachodni '
-            if 247 <= json['deg'] <= 292:  msg += ' zachodni '
-            if 292 <= json['deg'] <= 337:  msg += ' polnocno zachodni '
-            if 337 <= json['deg'] <= 360:  msg += ' polnocny '
-            msg += self.__language.read_degrees(int(json['deg']))
+            msg += ["_", "wiatr"]
+            if 0 <= json['deg'] <= 23:  msg += [ "polnocny" ]
+            if 23 <= json['deg'] <= 67:  msg += [ 'polnocno', 'wschodni' ]
+            if 67 <= json['deg'] <= 112:  msg +=[  "wschodni" ]
+            if 112 <= json['deg'] <= 157:  msg += [ 'poludniowo', 'wschodni' ]
+            if 157 <= json['deg'] <= 202:  msg += [ "poludniowy" ]
+            if 202 <= json['deg'] <= 247:  msg += [ 'poludniowo', 'zachodni' ]
+            if 247 <= json['deg'] <= 292:  msg += [ "zachodni" ]
+            if 292 <= json['deg'] <= 337:  msg += [ 'polnocno', 'zachodni' ]
+            if 337 <= json['deg'] <= 360:  msg += [ "polnocny" ]
+            msg.extend(self.__language.read_degrees(int(json['deg'])).split())
         return msg
 
     def get_data(self):
@@ -163,33 +169,31 @@ class OpenWeatherSq9atk(SR0WXModule):
 
         self.__logger.info("::: Przetwarzam dane...\n")
 
-        message = "".join([
-            " stan_pogody_z_godziny ",
-            self.getHour(),
-            self.getWeather(weatherJson['weather']),
-            self.getClouds(weatherJson['clouds']),
-            self.getMainConditions(weatherJson['main']),
-            # self.getVisibility( weatherJson['visibility'] ),
-            self.getWind(weatherJson['wind']),
-        ])
+        message = ["stan_pogody_z_godziny",]
+        message.extend(self.getHour())
+        message.extend(self.getWeather(weatherJson['weather']))
+        message.extend(self.getClouds(weatherJson['clouds']))
+        message.extend(self.getMainConditions(weatherJson['main']))
+        message.extend(self.getVisibility( weatherJson['visibility'] ))
+        message.extend(self.getWind(weatherJson['wind']))
+
 
         forecastJson = forecastJsonAll['list'][1]
-        message += "".join([
-            " _ prognoza_na_nastepne cztery godziny ",
-            self.getWeather(forecastJson['weather']),
-            self.getClouds(forecastJson['clouds']),
-            self.getMainConditions(forecastJson['main']),
-            self.getWind(forecastJson['wind']),
-        ])
+        message += ["_", "prognoza_na_nastepne", "cztery", "godziny",]
+        message.extend(self.getWeather(forecastJson['weather']))
+        message.extend(self.getClouds(forecastJson['clouds']))
+        message.extend(self.getMainConditions(forecastJson['main']))
+        message.extend(self.getWind(forecastJson['wind']))
+
 
         forecastJson = forecastJsonAll['list'][4]
-        message += "".join([
-            " _ prognoza_na_nastepne dwanascie godzin ",
-            self.getWeather(forecastJson['weather']),
-            self.getClouds(forecastJson['clouds']),
-            self.getMainConditions(forecastJson['main']),
-            self.getWind(forecastJson['wind']),
-        ])
+        message += [
+            "_", "prognoza_na_nastepne", "dwanascie", "godzin",]
+        message.extend(    self.getWeather(forecastJson['weather']))
+        message.extend(   self.getClouds(forecastJson['clouds']))
+        message.extend(   self.getMainConditions(forecastJson['main']))
+        message.extend(   self.getWind(forecastJson['wind']))
+
 
         self.__logger.info("::: Przetwarzam dane...\n")
 

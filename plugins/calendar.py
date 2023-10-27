@@ -49,10 +49,15 @@ class CalendarSq9atk(SR0WXModule):
         times = self.getSunsetSunrise()
         self.__logger.info("::: Przetwarzam dane...\n")
 
-        sunrise = " ".join(["wscho_d_sl_on_ca", "godzina", self.hourToNumbers(times['sunrise']), " "])
-        sunset = " ".join(["zacho_d_sl_on_ca", "godzina", self.hourToNumbers(times['sunset']), " "])
+        message = ["_", "kalendarium", "_", ]
+        message.extend(["wscho_d_sl_on_ca", "godzina"])
+        message.extend(self.hourToNumbers(times['sunrise']).split())
+        message.append("_")
+        message.extend(["zacho_d_sl_on_ca", "godzina"])
+        message.extend(self.hourToNumbers(times['sunset']).split())
+        message.append("_")
+        message.append("_")
 
-        message = " ".join([" _ kalendarium _ ", sunrise, " _ ", sunset, " _ "])
         return {
             "message": message,
             "source": "calendar_zoznam_sk",
