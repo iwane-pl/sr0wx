@@ -13,7 +13,18 @@ from sr0wx_module import SR0WXModule
 class AirlySq9atk(SR0WXModule):
     """Klasa pobierająca dane o zanieszczyszczeniach"""
 
-    def __init__(self, language, api_key, lat, lon, service_url, mode, maxDistanceKM, installationId, **kwargs):
+    def __init__(
+        self,
+        language,
+        api_key,
+        lat,
+        lon,
+        service_url,
+        mode,
+        maxDistanceKM,
+        installationId,
+        **kwargs,
+    ):
         self.__language = language
         self.__api_key = api_key
         self.__lat = str(lat)
@@ -24,11 +35,11 @@ class AirlySq9atk(SR0WXModule):
         self.__installationId = str(installationId)
         self.__logger = logging.getLogger(__name__)
         self.__levels = {
-            'VERY_LOW': 'bardzo_dobry',
-            'LOW': 'dobry',
-            'MEDIUM': 'umiarkowany',
-            'HIGH': 'zly',
-            'VERY_HIGH': 'bardzo_zly',
+            "VERY_LOW": "bardzo_dobry",
+            "LOW": "dobry",
+            "MEDIUM": "umiarkowany",
+            "HIGH": "zly",
+            "VERY_HIGH": "bardzo_zly",
         }
 
     def get_data(self):
@@ -48,8 +59,8 @@ class AirlySq9atk(SR0WXModule):
             " godzina ",
             self.getHour(),
             " _ stan_ogolny ",
-            self.__levels[jsonData['current']['indexes'][0]['level']],
-            self.getPollutionLevel(jsonData['current']['values']),
+            self.__levels[jsonData["current"]["indexes"][0]["level"]],
+            self.getPollutionLevel(jsonData["current"]["values"]),
             " _ ",
         ]
         return {
@@ -58,32 +69,42 @@ class AirlySq9atk(SR0WXModule):
         }
 
     def getPollutionLevel(self, json):
-        message = ''
+        message = ""
         for item in json:
-            if item['name'] == 'PM1':
-                message += ' _ pyl__zawieszony_pm1 '
-                message += self.__language.read_micrograms(int(item['value'])) + ' '
+            if item["name"] == "PM1":
+                message += " _ pyl__zawieszony_pm1 "
+                message += self.__language.read_micrograms(int(item["value"])) + " "
 
-            if item['name'] == 'PM25':
-                message += ' _ pyl__zawieszony_pm25 '
-                message += self.__language.read_micrograms(int(item['value'])) + ' '
+            if item["name"] == "PM25":
+                message += " _ pyl__zawieszony_pm25 "
+                message += self.__language.read_micrograms(int(item["value"])) + " "
 
-            if item['name'] == 'PM10':
-                message += ' _ pyl__zawieszony_pm10 '
-                message += self.__language.read_micrograms(int(item['value'])) + ' '
+            if item["name"] == "PM10":
+                message += " _ pyl__zawieszony_pm10 "
+                message += self.__language.read_micrograms(int(item["value"])) + " "
         return message
 
     def prepareApiServiceUrl(self):
-        api_url = 'https://airapi.airly.eu/v2/measurements/'
+        api_url = "https://airapi.airly.eu/v2/measurements/"
         urls = {
-            'installationId': api_url + 'installation?installationId=' + self.__installationId,
-            'point': api_url + 'point?lat=' + self.__lat + '&lng=' + self.__lon,
-            'nearest': api_url + 'nearest?lat=' + self.__lat + '&lng=' + self.__lon + '&maxDistanceKM=' + self.__maxDistanceKM,
-        };
+            "installationId": api_url
+            + "installation?installationId="
+            + self.__installationId,
+            "point": api_url + "point?lat=" + self.__lat + "&lng=" + self.__lon,
+            "nearest": api_url
+            + "nearest?lat="
+            + self.__lat
+            + "&lng="
+            + self.__lon
+            + "&maxDistanceKM="
+            + self.__maxDistanceKM,
+        }
         return urls[self.__mode]
 
     def getAirlyData(self, url):
-        request = urllib.request.Request(url, headers={'Accept': 'application/json', 'apikey': self.__api_key})
+        request = urllib.request.Request(
+            url, headers={"Accept": "application/json", "apikey": self.__api_key}
+        )
         try:
             webFile = urllib.request.urlopen(request, None, 30)
             return webFile.read()
@@ -95,13 +116,13 @@ class AirlySq9atk(SR0WXModule):
 
     def getHour(self):
         time = ":".join([str(datetime.now().hour), str(datetime.now().minute)])
-        datetime_object = datetime.strptime(time, '%H:%M')
-        msg = self.__language.read_datetime(datetime_object, '%H %M')
+        datetime_object = datetime.strptime(time, "%H:%M")
+        msg = self.__language.read_datetime(datetime_object, "%H %M")
         return msg
 
     def getVisibility(self, value):
-        msg = ' _ '
-        msg += ' widocznosc ' + self.__language.read_distance(int(value / 1000))
+        msg = " _ "
+        msg += " widocznosc " + self.__language.read_distance(int(value / 1000))
         return msg
 
 

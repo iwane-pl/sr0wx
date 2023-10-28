@@ -21,6 +21,7 @@ import warnings
 
 class SR0WXModule:
     """Base class for SR0WX modules."""
+
     def __init__(self):
         pass
 
@@ -47,15 +48,23 @@ class SR0WXModule:
     @staticmethod
     def safe_name(name):
         """Zwraca "bezpieczną" nazwę dla wyrazu z polskimi znakami diakrytycznymi"""
-        name = name.decode('utf-8') if isinstance(name, bytes) else name
-        return name.lower(). \
-            replace('ą', 'a_').replace('ć', 'c_'). \
-            replace('ę', 'e_').replace('ł', 'l_'). \
-            replace('ń', 'n_').replace('ó', 'o_'). \
-            replace('ś', 's_').replace('ź', 'z_'). \
-            replace('ż', 'z_').replace(' ', '_'). \
-            replace('-', '_').replace('(', ''). \
-            replace(')', '')
+        name = name.decode("utf-8") if isinstance(name, bytes) else name
+        return (
+            name.lower()
+            .replace("ą", "a_")
+            .replace("ć", "c_")
+            .replace("ę", "e_")
+            .replace("ł", "l_")
+            .replace("ń", "n_")
+            .replace("ó", "o_")
+            .replace("ś", "s_")
+            .replace("ź", "z_")
+            .replace("ż", "z_")
+            .replace(" ", "_")
+            .replace("-", "_")
+            .replace("(", "")
+            .replace(")", "")
+        )
 
     def __repr__(self):
         """

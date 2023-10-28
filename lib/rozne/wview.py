@@ -28,24 +28,27 @@ import sqlite3
 
 lang = None
 
+
 def my_import(name):
     mod = __import__(name)
-    components = name.split('.')
+    components = name.split(".")
     for comp in components[1:]:
         mod = getattr(mod, comp)
     return mod
+
 
 def getWeather():
     """Retrieves last (newest) record from archive.sdb. Possibly, this function
     should recalculate units (metric/imperial) or maybe calculate no-peak
     average of x number of values...
-    
+
     For now it just ``select``s all columns from ``archive``."""
 
     conn = sqlite3.connect(config.path)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
-    c.execute(""" 
+    c.execute(
+        """ 
 select datetime(dateTime, 'unixepoch', 'localtime') as dateTime, 
     usUnits, interval, barometer, pressure, altimeter, inTemp, outTemp, 
     inHumidity, outHumidity, windSpeed, windDir, windGust, windGustDir, 
@@ -58,26 +61,28 @@ select datetime(dateTime, 'unixepoch', 'localtime') as dateTime,
     rainBatteryStatus, outTempBatteryStatus, inTempBatteryStatus
 from archive
 order by datetime desc
-limit 1;""")
+limit 1;"""
+    )
 
     return c.fetchone()
+
 
 # Probably this is the beginning of the metcalc module for meteorological
 # calculations... we'll see.
 
-fahrenheit2celsius = lambda f: int((f-32)*(5/9.0)) 
-miph2mps = lambda miph: int(miph*0.44704)
-inHg2hPa = lambda inHg2hPa: int(inHg2hPa*33.7685)
+fahrenheit2celsius = lambda f: int((f - 32) * (5 / 9.0))
+miph2mps = lambda miph: int(miph * 0.44704)
+inHg2hPa = lambda inHg2hPa: int(inHg2hPa * 33.7685)
 
 
 def getData(l):
-    rv = {'data':'', "needCTCSS":False,"source":"" }
+    rv = {"data": "", "needCTCSS": False, "source": ""}
 
-    lang = my_import(l+"."+l)
+    lang = my_import(l + "." + l)
     w = getWeather()
 
     # For sure, we will never use all of these, but I think it's OK to see what
-    # other data we are able to use. Values which are used in code below had 
+    # other data we are able to use. Values which are used in code below had
     # been deleted from this menu (in alphabetical-like order):
 
     # ET                    inHumidity              rxCheckPercent
@@ -93,27 +98,24 @@ def getData(l):
     # extraTemp2            outTempBatteryStatus    txBatteryStatus
     # extraTemp3                                    usUnits
     # hail                  radiation               windBatteryStatus
-    # hailRate              rain                    
+    # hailRate              rain
     # heatindex             rainBatteryStatus       windGust
     # heatingTemp           rainRate                windGustDir
     # heatingVoltage        referenceVoltage        windchill
 
     data = {
-    'OBSERVATION_TIME': lang.readISODT(w['dateTime']),
-    'CURRENT_TEMP_C': lang.cardinal(
-            fahrenheit2celsius(w['outTemp']), lang.C),
-    'CURRENT_HUMIDITY': lang.cardinal(int(w['outHumidity']), lang.percent), 
-    'CURRENT_WIND_DIR_DEG': lang.cardinal(int(w['windDir']) or 0, lang.deg),
-    'CURRENT_WIND_SPEED_MPS': lang.cardinal(
-            miph2mps(w['windSpeed']), lang.mPs),
-    'CURRENT_PRESSURE': lang.cardinal(
-            inHg2hPa(w['pressure']), lang.hPa),
-    'TEMP_WIND_CHILL': lang.cardinal(
-            fahrenheit2celsius(w['windchill']), lang.C),
-}
+        "OBSERVATION_TIME": lang.readISODT(w["dateTime"]),
+        "CURRENT_TEMP_C": lang.cardinal(fahrenheit2celsius(w["outTemp"]), lang.C),
+        "CURRENT_HUMIDITY": lang.cardinal(int(w["outHumidity"]), lang.percent),
+        "CURRENT_WIND_DIR_DEG": lang.cardinal(int(w["windDir"]) or 0, lang.deg),
+        "CURRENT_WIND_SPEED_MPS": lang.cardinal(miph2mps(w["windSpeed"]), lang.mPs),
+        "CURRENT_PRESSURE": lang.cardinal(inHg2hPa(w["pressure"]), lang.hPa),
+        "TEMP_WIND_CHILL": lang.cardinal(fahrenheit2celsius(w["windchill"]), lang.C),
+    }
 
-    rv['data']=lang.removeDiacritics(config.template.format(**data))
+    rv["data"] = lang.removeDiacritics(config.template.format(**data))
     return rv
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     getWeather()

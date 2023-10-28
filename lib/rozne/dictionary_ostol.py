@@ -10,20 +10,15 @@
 
 # This is the GENERAL download list and settings for polish language
 
-LANGUAGE = 'pl'
+LANGUAGE = "pl"
 
 CUT_START = 0.9
-CUT_END=0.7
+CUT_END = 0.7
 
-CUT_PREFIX = 'ę. '
-CUT_SUFFIX = ' k'
+CUT_PREFIX = "ę. "
+CUT_SUFFIX = " k"
 
 download_list = [
-
-
-["dwa"],
-
-
-#["szósta"],
-
+    ["dwa"],
+    # ["szósta"],
 ]

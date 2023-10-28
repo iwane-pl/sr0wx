@@ -69,7 +69,7 @@ COLOR_OKGREEN = Fore.GREEN
 COLOR_WARNING = Fore.YELLOW
 COLOR_FAIL = Fore.RED
 COLOR_BOLD = Style.BRIGHT
-COLOR_UNDERLINE = '\033[4m'
+COLOR_UNDERLINE = "\033[4m"
 COLOR_ENDC = Style.RESET_ALL
 
 LICENSE = """
@@ -94,9 +94,9 @@ You can find full list of contributors on github.com/sq6jnx/sr0wx.py
 
 """
 
-DATA_SOURCES_ERROR_MSG = ['_', 'zrodlo_danych_niedostepne']
-HELLO_MSG = ['_', 'tu_eksperymentalna_automatyczna_stacja_pogodowa', 'sr0wx']
-GOODBYE_MSG = ['_', 'tu_sr0wx']
+DATA_SOURCES_ERROR_MSG = ["_", "zrodlo_danych_niedostepne"]
+HELLO_MSG = ["_", "tu_eksperymentalna_automatyczna_stacja_pogodowa", "sr0wx"]
+GOODBYE_MSG = ["_", "tu_sr0wx"]
 
 
 #
@@ -108,11 +108,12 @@ GOODBYE_MSG = ['_', 'tu_sr0wx']
 # For information purposes script says hello and gives local time/date,
 # so it will be possible to find out how long script was running.
 
+
 # Logging configuration
 def setup_logging(config, debug=False):
-    config['version'] = 1
+    config["version"] = 1
     # TODO: delete when module is refactored to load plugins after setup
-    config['disable_existing_loggers'] = False
+    config["disable_existing_loggers"] = False
     logging.config.dictConfig(config)
     logger = logging.getLogger()
     if debug:
@@ -121,6 +122,7 @@ def setup_logging(config, debug=False):
             hnd.setLevel(logging.DEBUG)
 
     return logger
+
 
 # All datas returned by SR0WX modules will be stored in ``data`` variable.
 
@@ -139,17 +141,25 @@ cfg_data = None
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config", help="Path to an alternate config.toml file")
-    parser.add_argument("-d", "--debug", action='store_true', help="Enable debug logging")
-    parser.add_argument("-t", "--test-mode", action='store_true',
-                        help="Enable test mode (disables serial port operations)")
-    parser.add_argument("modules", metavar='MOD', nargs='*', help="Limit modules to use")
+    parser.add_argument(
+        "-d", "--debug", action="store_true", help="Enable debug logging"
+    )
+    parser.add_argument(
+        "-t",
+        "--test-mode",
+        action="store_true",
+        help="Enable test mode (disables serial port operations)",
+    )
+    parser.add_argument(
+        "modules", metavar="MOD", nargs="*", help="Limit modules to use"
+    )
     args = parser.parse_args()
     return args
 
 
 def test_internet_connection():
     try:
-        urllib.request.urlopen('http://google.pl', None, 30)
+        urllib.request.urlopen("http://google.pl", None, 30)
         return True
     except (urllib.error.URLError, socket.error, socket.timeout):
         return False
@@ -167,17 +177,23 @@ def collect_messages(modules):
 
             message.extend(module_message)
             if module_message != "" and module_source != "":
-                sources.append(module_data['source'])
+                sources.append(module_data["source"])
         except Exception:
-            logger.exception(f"{COLOR_FAIL}Exception when running %s{COLOR_ENDC}", module)
+            logger.exception(
+                f"{COLOR_FAIL}Exception when running %s{COLOR_ENDC}", module
+            )
     return message, sources
 
 
 def play_ctcss(freq, volume):
     volume = volume * 1000
-    sampling_freq = cfg_data['playback']['sampling_frequency']
-    arr = numpy.array([volume * numpy.sin(2.0 * numpy.pi * round(freq) * x / sampling_freq) for x in
-                       range(0, sampling_freq)]).astype(numpy.int16)
+    sampling_freq = cfg_data["playback"]["sampling_frequency"]
+    arr = numpy.array(
+        [
+            volume * numpy.sin(2.0 * numpy.pi * round(freq) * x / sampling_freq)
+            for x in range(0, sampling_freq)
+        ]
+    ).astype(numpy.int16)
     arr2 = numpy.c_[arr, arr]
     ctcss = pygame.sndarray.make_sound(arr2)
     logger.info(f"{COLOR_WARNING}Playing CTCSS tone %.1fHz{COLOR_ENDC}\n", freq)
@@ -188,15 +204,22 @@ def prepare_sample_dictionary():
     sound_samples = {}
     for el in message:
         if isinstance(el, str):
-            if el.startswith('file://'):
+            if el.startswith("file://"):
                 sound_samples[el] = pygame.mixer.Sound(el.removeprefix("file://"))
 
             if el != "_" and el not in sound_samples:
-                sample_path = os.path.join("assets", cfg_data['options']['language'], f"{el}.ogg")
+                sample_path = os.path.join(
+                    "assets", cfg_data["options"]["language"], f"{el}.ogg"
+                )
                 if not os.path.isfile(sample_path):
-                    logger.warning(f"{COLOR_FAIL}Couldn't find %s{COLOR_ENDC}", sample_path)
+                    logger.warning(
+                        f"{COLOR_FAIL}Couldn't find %s{COLOR_ENDC}", sample_path
+                    )
                     sound_samples[el] = pygame.mixer.Sound(
-                        os.path.join("assets", cfg_data['options']['language'], "beep.ogg"))
+                        os.path.join(
+                            "assets", cfg_data["options"]["language"], "beep.ogg"
+                        )
+                    )
                 else:
                     sound_samples[el] = pygame.mixer.Sound(sample_path)
         else:
@@ -208,33 +231,34 @@ if __name__ == "__main__":
     message = []
     args = parse_args()
 
-    config_toml_path = 'config.toml'
+    config_toml_path = "config.toml"
     if args.config:
         config_toml_path = args.config
 
-    with open(config_toml_path, 'rb') as f:
+    with open(config_toml_path, "rb") as f:
         cfg_data = tomllib.load(f)
 
-    logger = setup_logging(cfg_data['log'], debug=args.debug)
+    logger = setup_logging(cfg_data["log"], debug=args.debug)
 
     logger.info(f"{COLOR_WARNING}sr0wx.py started{COLOR_ENDC}")
     logger.info(f"{Fore.BLUE}{LICENSE}{Style.RESET_ALL}")
 
-    ptt = PTT(cfg_data['serial']['port'],
-              cfg_data['serial']['baudrate'],
-              cfg_data['serial']['ptt_signal'],
-              args.test_mode,
-              )
+    ptt = PTT(
+        cfg_data["serial"]["port"],
+        cfg_data["serial"]["baudrate"],
+        cfg_data["serial"]["ptt_signal"],
+        args.test_mode,
+    )
 
     lang_module = importlib.import_module(f"speech.{cfg_data['options']['language']}")
 
     modules = []
-    for name, plugin_config in cfg_data['plugins'].items():
-        if plugin_config['enabled']:
+    for name, plugin_config in cfg_data["plugins"].items():
+        if plugin_config["enabled"]:
             # import and configure plugin module
             m = importlib.import_module(f"plugins.{name}")
-            combined_config = cfg_data['location'].copy()
-            combined_config['language'] = lang_module
+            combined_config = cfg_data["location"].copy()
+            combined_config["language"] = lang_module
             combined_config.update(plugin_config)
             plugin = m.create(combined_config)
             modules.append(plugin)
@@ -260,16 +284,16 @@ if __name__ == "__main__":
     # data. Every element of returned list is actually a filename of a sample.
 
     message = HELLO_MSG + message
-    if cfg_data['playback']['read_sources']:
+    if cfg_data["playback"]["read_sources"]:
         if len(sources) > 1:
             message.extend(sources)
     else:
-        message.extend( sources )
+        message.extend(sources)
     message.extend(GOODBYE_MSG)
 
     # It's time to init ``pygame``'s mixer (and ``pygame``).
 
-    pygame.mixer.init(cfg_data['playback']['sampling_frequency'], -16, 2, 1024)
+    pygame.mixer.init(cfg_data["playback"]["sampling_frequency"], -16, 2, 1024)
 
     # Next (as a tiny timesaver & memory eater ;) program loads all necessary
     # samples into memory. I think that this is better approach than reading
@@ -285,8 +309,8 @@ if __name__ == "__main__":
         else:
             playlist.append("[sndarray]")
 
-    if 'ctcss' in cfg_data:
-        play_ctcss(cfg_data['ctcss']['tone'], cfg_data['ctcss']['volume'])
+    if "ctcss" in cfg_data:
+        play_ctcss(cfg_data["ctcss"]["tone"], cfg_data["ctcss"]["volume"])
 
     logger.info("playlist elements: %s", " ".join(playlist) + "\n")
     logger.info("loading sound samples...")
@@ -327,7 +351,10 @@ if __name__ == "__main__":
                 sound = pygame.sndarray.make_sound(el)
                 if config.pygame_bug == 1:
                     sound = pygame.sndarray.make_sound(
-                        pygame.sndarray.array(sound)[:len(pygame.sndarray.array(sound)) / 2])
+                        pygame.sndarray.array(sound)[
+                            : len(pygame.sndarray.array(sound)) / 2
+                        ]
+                    )
                 voice_channel = sound.play()
             else:
                 logger.error("Unsupported sample type: %s (sample %s)", type(el), el)

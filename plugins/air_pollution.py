@@ -43,23 +43,20 @@ class AirPollutionSq9atk(SR0WXModule):
 
     def getStationName(self):
         url = self.__service_url + self.__stations_url
-        stationName = ''
+        stationName = ""
         for station in self.getJson(url):
-            if station['id'] == self.__station_id:
-                stationName = station['stationName']
+            if station["id"] == self.__station_id:
+                stationName = station["stationName"]
         return stationName
 
     def getSensorValue(self, sensorId):
         url = self.__service_url + self.__sensor_url + str(sensorId)
         data = self.getJson(url)
-        if data['values'][0]['value']:  # czasem tu schodzi null
-            value = data['values'][0]['value']
+        if data["values"][0]["value"]:  # czasem tu schodzi null
+            value = data["values"][0]["value"]
         else:
-            value = data['values'][1]['value']
-        return [
-            data['key'],
-            value
-        ]
+            value = data["values"][1]["value"]
+        return [data["key"], value]
 
     def getLevelIndexData(self):
         url = self.__service_url + self.__index_url + str(self.__station_id)
@@ -70,20 +67,22 @@ class AirPollutionSq9atk(SR0WXModule):
         levelIndexArray = self.getLevelIndexData()
         sensors = []
         for row in self.getJson(url):
-            value = self.getSensorValue(row['id'])
+            value = self.getSensorValue(row["id"])
             if value[1] > 1:  # czasem tu schodzi none
                 qualityIndexName = self.safe_name(value[0]) + "IndexLevel"
                 if qualityIndexName in levelIndexArray:
-                    index = levelIndexArray[qualityIndexName]['indexLevelName']
+                    index = levelIndexArray[qualityIndexName]["indexLevelName"]
                 else:
-                    index = 'empty'
-                sensors.append([
-                    row['id'],
-                    qualityIndexName,
-                    self.safe_name(row['param']['paramName']),
-                    value[1],
-                    self.safe_name(index)
-                ])
+                    index = "empty"
+                sensors.append(
+                    [
+                        row["id"],
+                        qualityIndexName,
+                        self.safe_name(row["param"]["paramName"]),
+                        value[1],
+                        self.safe_name(index),
+                    ]
+                )
         if len(sensors) > 0:
             return sensors
         else:
@@ -91,15 +90,15 @@ class AirPollutionSq9atk(SR0WXModule):
 
     def prepareMessage(self, data):
         levels = {
-            'bardzo_dobry': 'poziom_bardzo_dobry',
-            'dobry': 'poziom_dobry',
-            'dostateczny': 'poziom_dostateczny',
-            'umiarkowany': 'poziom_umiarkowany',
-            'zly': 'poziom_zl_y',  # ten jest chyba nieuzywany
-            'zl_y': 'poziom_zl_y',
-            'bardzo_zly': 'poziom_bardzo_zl_y',  # ten też jest chyba nieuzywany
-            'bardzo_zl_y': 'poziom_bardzo_zl_y',
-            'empty': ''
+            "bardzo_dobry": "poziom_bardzo_dobry",
+            "dobry": "poziom_dobry",
+            "dostateczny": "poziom_dostateczny",
+            "umiarkowany": "poziom_umiarkowany",
+            "zly": "poziom_zl_y",  # ten jest chyba nieuzywany
+            "zl_y": "poziom_zl_y",
+            "bardzo_zly": "poziom_bardzo_zl_y",  # ten też jest chyba nieuzywany
+            "bardzo_zl_y": "poziom_bardzo_zl_y",
+            "empty": "",
         }
         message = []
         for _, _, gas, concentration, level, *_ in data:
@@ -116,8 +115,8 @@ class AirPollutionSq9atk(SR0WXModule):
         sensorsData = self.getSensorsData()
         valuesMessage = self.prepareMessage(sensorsData)
 
-        message = [ "_", "informacja_o_skaz_eniu_powietrza", "_" ]
-        message += [ "stacja_pomiarowa" , self.safe_name(self.getStationName()) , "_" ]
+        message = ["_", "informacja_o_skaz_eniu_powietrza", "_"]
+        message += ["stacja_pomiarowa", self.safe_name(self.getStationName()), "_"]
         message += valuesMessage
 
         return {

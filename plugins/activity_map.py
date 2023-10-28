@@ -28,23 +28,33 @@ from sr0wx_module import SR0WXModule
 
 class ActivityMap(SR0WXModule):
     """This module does not give any data, it just contacts application to mark
-station on the map.
+    station on the map.
 
-Parameters:
-    - `callsign`: your station callsign
-    - `latitude`, `longitude`: geographic position of station
-    - `hour_quarter`: quarter in which station is transmitting (to be
-    deprecated)
-    - `above_sea_level`: antenna's height a.s.l.
-    - `above_ground_level`: antenna's height a.g.l.
-    - `station_range`: station's range in normal conditions, in kilometers
-    - `additional_info`: additional information to show on website
-    - `service_url`: mapping service url, defaults to SQ9ATK service
+    Parameters:
+        - `callsign`: your station callsign
+        - `latitude`, `longitude`: geographic position of station
+        - `hour_quarter`: quarter in which station is transmitting (to be
+        deprecated)
+        - `above_sea_level`: antenna's height a.s.l.
+        - `above_ground_level`: antenna's height a.g.l.
+        - `station_range`: station's range in normal conditions, in kilometers
+        - `additional_info`: additional information to show on website
+        - `service_url`: mapping service url, defaults to SQ9ATK service
     """
 
-    def __init__(self, callsign, latitude, longitude, hour_quarter,
-                 above_sea_level, above_ground_level, station_range,
-                 additional_info="", service_url="", **kwargs):
+    def __init__(
+        self,
+        callsign,
+        latitude,
+        longitude,
+        hour_quarter,
+        above_sea_level,
+        above_ground_level,
+        station_range,
+        additional_info="",
+        service_url="",
+        **kwargs,
+    ):
         self.__callsign = callsign
         self.__latitude = latitude
         self.__longitude = longitude
@@ -74,10 +84,10 @@ Parameters:
             "info": self.__additional_info,
         }
 
-        dump = json.dumps(station_info, separators=(',', ':'))
-        b64data = base64.urlsafe_b64encode(dump.encode('utf-8'))
+        dump = json.dumps(station_info, separators=(",", ":"))
+        b64data = base64.urlsafe_b64encode(dump.encode("utf-8"))
 
-        url = self.__service_url + b64data.decode('ascii')
+        url = self.__service_url + b64data.decode("ascii")
 
         self.__logger.info("::: Odpytuję adres: " + url)
 
@@ -86,7 +96,7 @@ Parameters:
             webFile = urllib.request.urlopen(request, None, 5)
             response = webFile.read()
 
-            if response == b'OK':
+            if response == b"OK":
                 self.__logger.info("::: Dane wysłano, status OK\n")
             else:
                 log = "Non-OK response from %s, (%s)"

@@ -46,7 +46,11 @@ class VhfTropoSq9atk(SR0WXModule):
             return None
 
     def findMapUrlInHtml(self, html, target_id):
-        pattern = rb'<img\s+(?:[^>]*\s+)?id="' + re.escape(target_id).encode('ascii') + rb'"(?:[^>]*)\s+src="([^"]+)"'
+        pattern = (
+            rb'<img\s+(?:[^>]*\s+)?id="'
+            + re.escape(target_id).encode("ascii")
+            + rb'"(?:[^>]*)\s+src="([^"]+)"'
+        )
         match = re.search(pattern, html, re.IGNORECASE)
         if match:
             mapUrl = match.group(1)
@@ -56,7 +60,7 @@ class VhfTropoSq9atk(SR0WXModule):
 
     def downloadMapFile(self, mapUrl, targetFileName):
         try:
-            self.__logger.info("::: Odpytuję adres: " + mapUrl.decode('utf-8'))
+            self.__logger.info("::: Odpytuję adres: " + mapUrl.decode("utf-8"))
             response = requests.get(mapUrl, timeout=30)
 
             with open(targetFileName, "wb") as mapFile:
@@ -69,9 +73,8 @@ class VhfTropoSq9atk(SR0WXModule):
         return
 
     def readMapImageFile(self, fileName):
-
-        mapImg = Image.open(fileName, 'r')
-        mapRgbImg = mapImg.convert('RGB')
+        mapImg = Image.open(fileName, "r")
+        mapRgbImg = mapImg.convert("RGB")
         mapCropped = mapRgbImg.crop((43, 67, 888, 654))
         try:
             mapCropped.save(fileName)
@@ -86,8 +89,8 @@ class VhfTropoSq9atk(SR0WXModule):
         imgHeight = float(imgHeight)
         lonRange = self.__mapLonEnd - self.__mapLonStart
         latRange = self.__mapLatEnd - self.__mapLatStart
-        lonMod = (imgWidth / lonRange)
-        latMod = (imgHeight / latRange)
+        lonMod = imgWidth / lonRange
+        latMod = imgHeight / latRange
         pixelY = round(latMod * (lat - self.__mapLatStart))
         pixelX = round(lonMod * (lon - self.__mapLonStart))
 
@@ -113,14 +116,14 @@ class VhfTropoSq9atk(SR0WXModule):
             for dy in range(-half_size, half_size + 1):
                 coordinates.append((x_center + dx, y_center + dy))
 
-        return coordinates[::self.__colorSampleScatter]
+        return coordinates[:: self.__colorSampleScatter]
 
     def collectSamplesColors(self, image, coordinates):
         colors = []
         for x, y in coordinates:
             pixel_value = image.getpixel((x, y))
-            colorHex = '#%02x%02x%02x' % pixel_value
-            if colorHex != '#ffffff' and colorHex != '#000000':
+            colorHex = "#%02x%02x%02x" % pixel_value
+            if colorHex != "#ffffff" and colorHex != "#000000":
                 colors.append(colorHex)
 
         return colors
@@ -140,23 +143,25 @@ class VhfTropoSq9atk(SR0WXModule):
             percentage = (value / float(total_elements)) * 100
             percentage_frequencies[key] = percentage
 
-        return sorted(list(percentage_frequencies.items()), key=lambda item: item[1], reverse=True)
+        return sorted(
+            list(percentage_frequencies.items()), key=lambda item: item[1], reverse=True
+        )
 
     def getColorPunctation(self, colorHex):
         colors = {
-            '#141414': 0.00,  # czarny
-            '#8200dc': 1.00,  # fioletowy
-            '#3377ff': 2.00,  # błękitny
-            '#02d0a1': 3.00,  # pistacjowy
-            '#a0e632': 4.00,  # cytrynowy
-            '#e6dc32': 5.00,  # żółty
-            '#e6af2d': 6.00,  # musztardowy
-            '#f08228': 7.00,  # pomarańczowy
-            '#fa3c3c': 8.00,  # czerwony
-            '#ff80c0': 9.00,  # różowy
-            '#ffb4dc': 10.00,  # różowy pastelowy
-            '#cc86cc': 11.00,  # różowy szary
-            '#c0c0c0': 12.00  # szary
+            "#141414": 0.00,  # czarny
+            "#8200dc": 1.00,  # fioletowy
+            "#3377ff": 2.00,  # błękitny
+            "#02d0a1": 3.00,  # pistacjowy
+            "#a0e632": 4.00,  # cytrynowy
+            "#e6dc32": 5.00,  # żółty
+            "#e6af2d": 6.00,  # musztardowy
+            "#f08228": 7.00,  # pomarańczowy
+            "#fa3c3c": 8.00,  # czerwony
+            "#ff80c0": 9.00,  # różowy
+            "#ffb4dc": 10.00,  # różowy pastelowy
+            "#cc86cc": 11.00,  # różowy szary
+            "#c0c0c0": 12.00,  # szary
         }
 
         result = False
@@ -181,7 +186,9 @@ class VhfTropoSq9atk(SR0WXModule):
     def getLocationCondition(self, mapImg, x, y):
         maxWidth, maxHeight = mapImg.size
 
-        samplesCoordinates = self.prepareSamplesCoordinates(x, y, self.__areaSize, maxWidth, maxHeight)
+        samplesCoordinates = self.prepareSamplesCoordinates(
+            x, y, self.__areaSize, maxWidth, maxHeight
+        )
         samples = self.collectSamplesColors(mapImg, samplesCoordinates)
 
         occurences = self.calculateColorsOccurence(samples)
@@ -194,14 +201,14 @@ class VhfTropoSq9atk(SR0WXModule):
         shift = self.__areaSize
 
         return {
-            'N': self.getLocationCondition(mapImg, x, y - shift),
-            'NE': self.getLocationCondition(mapImg, x + shift, y - shift),
-            'E': self.getLocationCondition(mapImg, x + shift, y),
-            'SE': self.getLocationCondition(mapImg, x + shift, y + shift),
-            'S': self.getLocationCondition(mapImg, x, y + shift),
-            'SW': self.getLocationCondition(mapImg, x - shift, y + shift),
-            'W': self.getLocationCondition(mapImg, x - shift, y),
-            'NW': self.getLocationCondition(mapImg, x - shift, y - shift),
+            "N": self.getLocationCondition(mapImg, x, y - shift),
+            "NE": self.getLocationCondition(mapImg, x + shift, y - shift),
+            "E": self.getLocationCondition(mapImg, x + shift, y),
+            "SE": self.getLocationCondition(mapImg, x + shift, y + shift),
+            "S": self.getLocationCondition(mapImg, x, y + shift),
+            "SW": self.getLocationCondition(mapImg, x - shift, y + shift),
+            "W": self.getLocationCondition(mapImg, x - shift, y),
+            "NW": self.getLocationCondition(mapImg, x - shift, y - shift),
         }
 
     def getTopDirectionsValues(self, input_table):
@@ -211,32 +218,32 @@ class VhfTropoSq9atk(SR0WXModule):
 
         filtered_rows.sort(key=lambda x: x[1], reverse=True)
 
-        keys = ['vhf_' + row[0].lower() for row in filtered_rows[:2]]
+        keys = ["vhf_" + row[0].lower() for row in filtered_rows[:2]]
 
         if len(keys) == 2:
-            keys.insert(1, 'vhf_oraz')
+            keys.insert(1, "vhf_oraz")
 
         return keys
 
     def prepareMessage(self, mainConditionValue, directionalConditionsValues):
-        message = [ 'vhf_brak_szans_na_lacznosc_troposferyczna' ]
+        message = ["vhf_brak_szans_na_lacznosc_troposferyczna"]
 
         if mainConditionValue > 0.3:
-            message = [ 'vhf_minimalne_szanse_na_lacznosc_troposferyczna' ]
+            message = ["vhf_minimalne_szanse_na_lacznosc_troposferyczna"]
         if mainConditionValue > 0.5:
-            message = [ 'vhf_niewielkie_szanse_na_lacznosc_troposferyczna' ]
+            message = ["vhf_niewielkie_szanse_na_lacznosc_troposferyczna"]
         if mainConditionValue > 1:
-            message = [ 'vhf_spore_szanse_na_lacznosc_troposferyczna' ]
+            message = ["vhf_spore_szanse_na_lacznosc_troposferyczna"]
         if mainConditionValue > 2:
-            message = [ 'vhf_duze_szanse_na_lacznosc_troposferyczna' ]
+            message = ["vhf_duze_szanse_na_lacznosc_troposferyczna"]
         if mainConditionValue > 5:
-            message = [ 'vhf_bardzo_duze_szanse_na_lacznosc_troposferyczna' ]
+            message = ["vhf_bardzo_duze_szanse_na_lacznosc_troposferyczna"]
         if mainConditionValue > 8:
-            message = [ 'vhf_wyjatkowo_duze_szanse_na_lacznosc_troposferyczna' ]
+            message = ["vhf_wyjatkowo_duze_szanse_na_lacznosc_troposferyczna"]
         if mainConditionValue > 3:
-            message = [ 'vhf_uwaga', 'vhf_warunki_podwyzszone', '_'] + message
+            message = ["vhf_uwaga", "vhf_warunki_podwyzszone", "_"] + message
         if mainConditionValue > 0.5:
-            message += [  'vhf_najlepsze_warunki_w_kierunku' ]
+            message += ["vhf_najlepsze_warunki_w_kierunku"]
             message += self.getTopDirectionsValues(directionalConditionsValues)
 
         return message
@@ -245,9 +252,9 @@ class VhfTropoSq9atk(SR0WXModule):
         html = self.getHtmlFromUrl(self.__service_url)
         mapUrl = self.findMapUrlInHtml(html, "imgClickAndChange")
 
-        self.downloadMapFile(mapUrl, 'vhf_map.png')
+        self.downloadMapFile(mapUrl, "vhf_map.png")
 
-        mapImg = self.readMapImageFile('vhf_map.png')
+        mapImg = self.readMapImageFile("vhf_map.png")
 
         mapWidth, mapHeight = mapImg.size
 
@@ -257,9 +264,10 @@ class VhfTropoSq9atk(SR0WXModule):
         directionalConditionsValues = self.getDirectionalConditions(mapImg, x, y)
 
         message = ["_", "vhf_propagacja_w_pasmie_vhf", "_"]
-        message.extend(self.prepareMessage(mainConditionValue, directionalConditionsValues))
-        message.append(    "_")
-
+        message.extend(
+            self.prepareMessage(mainConditionValue, directionalConditionsValues)
+        )
+        message.append("_")
 
         return {
             "message": message,

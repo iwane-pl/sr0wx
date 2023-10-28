@@ -9,25 +9,62 @@ lslownie - liczba slownie ("dwieście dwadzieścia trzy")
 cosslownie - rzecz słownie, odmiana jako argument ("dwadzieścia niedźwiedzi")
 """
 
-JEDNOSTKI = [u(""), u("jeden"), u("dwa"), u("trzy"), u("cztery"), u("pięć"),
-        u("sześć"), u("siedem"), u("osiem"), u("dziewięć")]
-DZIESIATKI = [u(""), u("dziesięć"), u("dwadzieścia"), u("trzydzieści"),
-        u("czterdzieści"), u("pięćdziesiąt"), u("sześćdziesiąt"),
-        u("siedemdziesiąt"), u("osiemdziesiąt"), u("dziewięćdziesiąt")]
-NASTKI = [u("dziesięć"), u("jedenaście"), u("dwanaście"), u("trzynaście"),
-        u("czternaście"), u("piętnaście"), u("szesnaście"), u("siedemnaście"),
-        u("osiemnaście"), u("dziewiętnaście")]
-SETKI = [u(""), u("sto"), u("dwieście"), u("trzysta"), u("czterysta"),
-        u("pięćset"), u("sześćset"), u("siedemset"), u("osiemset"),
-        u("dziewięćset")]
+JEDNOSTKI = [
+    u(""),
+    u("jeden"),
+    u("dwa"),
+    u("trzy"),
+    u("cztery"),
+    u("pięć"),
+    u("sześć"),
+    u("siedem"),
+    u("osiem"),
+    u("dziewięć"),
+]
+DZIESIATKI = [
+    u(""),
+    u("dziesięć"),
+    u("dwadzieścia"),
+    u("trzydzieści"),
+    u("czterdzieści"),
+    u("pięćdziesiąt"),
+    u("sześćdziesiąt"),
+    u("siedemdziesiąt"),
+    u("osiemdziesiąt"),
+    u("dziewięćdziesiąt"),
+]
+NASTKI = [
+    u("dziesięć"),
+    u("jedenaście"),
+    u("dwanaście"),
+    u("trzynaście"),
+    u("czternaście"),
+    u("piętnaście"),
+    u("szesnaście"),
+    u("siedemnaście"),
+    u("osiemnaście"),
+    u("dziewiętnaście"),
+]
+SETKI = [
+    u(""),
+    u("sto"),
+    u("dwieście"),
+    u("trzysta"),
+    u("czterysta"),
+    u("pięćset"),
+    u("sześćset"),
+    u("siedemset"),
+    u("osiemset"),
+    u("dziewięćset"),
+]
 
 WIELKIE = [
-        [u("x"), u("x"), u("x")],
-        [u("tysiąc"), u("tysiące"), u("tysięcy")],
-        [u("milion"), u("miliony"), u("milionów")],
-        [u("miliard"), u("miliardy"), u("miliardów")],
-        [u("bilion"), u("biliony"), u("bilionów")],
-    ]
+    [u("x"), u("x"), u("x")],
+    [u("tysiąc"), u("tysiące"), u("tysięcy")],
+    [u("milion"), u("miliony"), u("milionów")],
+    [u("miliard"), u("miliardy"), u("miliardów")],
+    [u("bilion"), u("biliony"), u("bilionów")],
+]
 
 ZLOTOWKI = [u("złoty"), u("złote"), u("złotych")]
 GROSZE = [u("grosz"), u("grosze"), u("groszy")]
