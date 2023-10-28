@@ -1,10 +1,14 @@
 #!/usr/bin/python -tt
-# -*- coding: utf-8 -*-
-import base64
-import json
+import datetime
 import logging
 import os.path
-import subprocess
+from typing import Iterable
+
+import msgspec
+import requests
+
+from sr0wx_module import SR0WXModule
+
 
 #   Copyright 2009-2012 Michal Sadowski (sq6jnx at hamradio dot pl)
 #
@@ -21,155 +25,163 @@ import subprocess
 #   limitations under the License.
 #
 
-try:
-    import tomllib
-except ImportError:
-    import tomli as tomllib
 
-from sr0wx_module import SR0WXModule
+# data schemas for deserialization
+class WGWaterState(msgspec.Struct):
+    date: datetime.datetime
+    value: float
 
 
+class WGStatus(msgspec.Struct):
+    river: str
+    currentState: WGWaterState
+    previousState: WGWaterState
+    outdatedState: bool
+    description: str
+    province: str
+
+    @property
+    def river_name(self):
+        return self.river.split("(")[0].strip()
+
+
+class WGData(msgspec.Struct):
+    id: int
+    status: WGStatus
+    alarmValue: float
+    warningValue: float
+    trend: str
+    name: str
+
+    @property
+    def has_alarm(self):
+        return self.status.currentState.value > self.alarmValue
+
+    @property
+    def has_warning(self):
+        return self.status.currentState.value > self.warningValue
+
+
+# TODO: tests - as there are data on disk
 class ImgwPodestSq9atk(SR0WXModule):
     """Klasa przetwarza dane informujące o przekroczeniach stanów rzek w regionie."""
 
-    def __init__(self, **kwargs):
-        with open(os.path.join("assets", "wodowskazy.toml"), "rb") as f:
-            self.__wodowskazy = tomllib.load(f)
+    TRENDS = {
+        "up": "tendencja_wzrostowa",
+        "down": "tendencja_spadkowa",
+    }
+
+    def __init__(self, service_url: str, water_gauges: Iterable[int], **kwargs):
+        super().__init__()
         self.__logger = logging.getLogger(__name__)
-        self._dane_wodowskazow = {}
+        self._service_url = service_url
+        self._selected_water_gauges = water_gauges
+        # debug mode, loads data from disk
+        self._offline: bool = kwargs.pop("offline_mode", False)
+        if self._offline:
+            self.__logger.info("Debug mode: IMGW data loaded from disk!")
+        self._wg_data: dict[int, WGData | None] = {}
 
-    def zaladujWybraneWodowskazy(self):
-        self.__logger.info("::: Pobieram dane o wodowskazach...")
-        try:
-            jsonData = json.dumps(self.__wodowskazy, separators=(",", ":"))
-            b64data = base64.urlsafe_b64encode(jsonData.encode("utf-8"))
-            proc = subprocess.Popen(
-                "php imgw_podest_sq9atk.php " + b64data.decode("ascii"),
-                shell=True,
-                stdout=subprocess.PIPE,
-            )
-
-            dane = proc.stdout.read()
-            self.__logger.info("::: Przetwarzam...")
-            self._dane_wodowskazow = json.loads(dane)
-
-        except Exception:
-            self.__logger.exception("Nie udało się pobrać danych o wodowskazach!")
-            self._dane_wodowskazow = {}
-
-    def pobierzDaneWodowskazu(self, wodowskaz):
-        if "." in wodowskaz:
-            wodowskaz = wodowskaz.split(".")[1]
-
-        dane = self._dane_wodowskazow[wodowskaz]
-
-        # omijanie zrypanych wodowskazów
-        # elif dane['poziom_alarmowy'] == None:
-        #   stan = ""
-        # elif dane['poziom_ostrzegawczy'] == None:
-        #   stan = ""
-
-        if dane["stan_cm"] > dane["poziom_alarmowy"]:
-            stan = "alarmowy"
-        elif dane["stan_cm"] > dane["poziom_ostrzegawczy"]:
-            stan = "ostrzegawczy"
-        else:
-            stan = ""
-
-        if dane["tendencja"] == 1:
-            tendencja = "tendencja_wzrostowa"
-        elif dane["tendencja"] == -1:
-            tendencja = "tendencja_spadkowa"
-        else:
-            tendencja = ""
-
-        return {
-            "numer": wodowskaz,
-            "nazwa": dane["nazwa"].strip().encode("utf-8"),
-            "nazwa_org": dane["nazwa"].lower().encode("utf-8"),
-            "rzeka": dane["rzeka"].strip().encode("utf-8"),
-            "stan": dane["stan_cm"],
-            "przekroczenieStanu": stan,
-            # 'przekroczenieStanuStan': stan,
-            "tendencja": tendencja,
-        }
-
-    @property
-    def get_data(self):
-        message = " "
-
-        stanyOstrzegawcze = {}
-        stanyAlarmowe = {}
-
-        zaladowaneRegiony = []
-        self.zaladujWybraneWodowskazy()
-
-        if self._dane_wodowskazow:
-            for wodowskaz in self.__wodowskazy:
-                region = wodowskaz.split(".")[0]
-
-                if region not in zaladowaneRegiony:
-                    zaladowaneRegiony.append(region)
-                    # w = s.pobierzDaneWodowskazu(wodowskaz)
-                try:
-                    w = self.pobierzDaneWodowskazu(wodowskaz)
-                    rzeka = w["rzeka"]
-                    w["rzeka"] = self.safe_name(w["rzeka"])
-                    w["nazwa"] = self.safe_name(w["nazwa"])
-
-                    id_wodowskazu = wodowskaz + " - " + rzeka + " - " + w["nazwa_org"]
-                    tendencja = w["nazwa"] + " " + w["tendencja"] + " _ "
-                    if w["przekroczenieStanu"] == "ostrzegawczy":
-                        self.__logger.info("::: Stan ostrzegawczy: %s", id_wodowskazu)
-                        if w["rzeka"] not in stanyOstrzegawcze:
-                            stanyOstrzegawcze[w["rzeka"]] = [tendencja]
-
-                        else:
-                            stanyOstrzegawcze[w["rzeka"]].append(tendencja)
-
-                    elif w["przekroczenieStanu"] == "alarmowy":
-                        self.__logger.info("::: Stan alarmowy: %s", id_wodowskazu)
-                        if w["rzeka"] not in stanyAlarmowe:
-                            stanyAlarmowe[w["rzeka"]] = [tendencja]
-
-                        else:
-                            stanyAlarmowe[w["rzeka"]].append(tendencja)
-
-                    else:
-                        self.__logger.debug("Przetwarzam wodowskaz: %s", id_wodowskazu)
-                except KeyError:
-                    self.__logger.exception(
-                        "::: Brak danych dla wodowskazu %s!!! ", wodowskaz
+    def load_wg_data(self):
+        self.__logger.info("::: Downloading water gauge data...")
+        for wg in self._selected_water_gauges:
+            self._wg_data[wg] = None
+            try:
+                self.__logger.debug("Water gauge ID: %s", wg)
+                if not self._offline:
+                    resp = requests.request("GET", self._service_url.format(wg))
+                    resp.raise_for_status()
+                    # strict=False to allow automatic gauge ID conversion from str
+                    self._wg_data[wg] = msgspec.json.decode(
+                        resp.content, type=WGData, strict=False
                     )
+                else:
+                    with open(
+                        os.path.join("test", "data", f"test_{wg}_map.json"),
+                        encoding="utf-8",
+                    ) as f:
+                        self._wg_data[wg] = msgspec.json.decode(
+                            f.read(), type=WGData, strict=False
+                        )
 
-            message = ["_", "_"]
-            if stanyOstrzegawcze != {} or stanyAlarmowe != {}:
+            except requests.exceptions.HTTPError:
+                self.__logger.exception("Couldn't download water gauge %s data", wg)
+                raise
+            except OSError:
+                self.__logger.exception("Couldn't load data from disk")
+                raise
+            except msgspec.ValidationError:
+                self.__logger.exception("There is an error in received data")
+                raise
+
+    def get_data(self):
+        message = ["_", "_"]
+        warning_states = {}
+        alarm_states = {}
+
+        self.load_wg_data()
+
+        if self._wg_data:
+            for wg_id in self._selected_water_gauges:
+                try:
+                    w = self._wg_data[wg_id]
+                    river = w.status.river_name
+                    river_sample = self.safe_name(river)
+                    wg_name_sample = self.safe_name(w.name.lower())
+
+                    wg_id_for_log = f"{wg_id} - {river} - {w.name}"
+                    trend_samples = [
+                        wg_name_sample,
+                        self.TRENDS.get(w.trend, "beep"),
+                        "_",
+                    ]
+                    if w.has_alarm:
+                        self.__logger.info("::: Alarm state: %s", wg_id_for_log)
+                        if river_sample not in alarm_states:
+                            alarm_states[river_sample] = [trend_samples]
+
+                        else:
+                            alarm_states[river_sample].append(trend_samples)
+
+                    elif w.has_warning:
+                        self.__logger.info("::: Warning state: %s", wg_id_for_log)
+                        if river_sample not in warning_states:
+                            warning_states[river_sample] = [trend_samples]
+
+                        else:
+                            warning_states[river_sample].append(trend_samples)
+                    else:
+                        self.__logger.debug("Parsed water gauge: %s", wg_id_for_log)
+                except KeyError:
+                    self.__logger.exception("::: No data for water gauge %s!!! ", wg_id)
+
+            if warning_states != {} or alarm_states != {}:
                 message.append("komunikat_hydrologiczny_imgw")
                 message.append("_")
 
-                if stanyAlarmowe != {}:
+                if alarm_states != {}:
                     # Sprawdzenie dla których wodowskazów mamy przekroczone
                     # stany alarmowe -- włącz ctcss
 
                     message.append("przekroczenia_stanow_alarmowych")
-                    for rzeka in sorted(stanyAlarmowe.keys()):
+                    for river in sorted(alarm_states.keys()):
                         message.append("rzeka")
-                        message.append(rzeka)
-                        for wodowskaz in sorted(stanyAlarmowe[rzeka]):
+                        message.append(river)
+                        for wg in sorted(alarm_states[river]):
                             message.append("wodowskaz")
-                            message.append(wodowskaz)
+                            message.extend(wg)
 
-                if stanyOstrzegawcze != {}:
+                if warning_states != {}:
                     message.append("_")
                     message.append("przekroczenia_stanow_ostrzegawczych")
-                    for rzeka in sorted(stanyOstrzegawcze.keys()):
+                    for river in sorted(warning_states.keys()):
                         message.append("rzeka")
-                        message.append(rzeka)
-                        for wodowskaz in sorted(stanyOstrzegawcze[rzeka]):
+                        message.append(river)
+                        for wg in sorted(warning_states[river]):
                             message.append("wodowskaz")
-                            message.append(format(wodowskaz))
+                            message.extend(wg)
 
-            self.__logger.info("::: Przekazuję przetworzone dane...\n")
+            self.__logger.info("::: Finished parsing water gauge data...\n")
 
             message.append("_")
 
