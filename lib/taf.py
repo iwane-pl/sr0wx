@@ -16,7 +16,10 @@
 #   limitations under the License.
 #
 
-import re, urllib.request, urllib.parse, urllib.error
+import re
+import urllib.error
+import urllib.parse
+import urllib.request
 
 
 def between(a, b, c):
@@ -196,11 +199,11 @@ class taf:
         # taf variable will be used for debug purposes.
         if taf is not None:
             report = taf.split("\n")
-            header = report[0].split()
-            originDate = header[1]
+            # header = report[0].split()
+            # originDate = header[1]
             self.rawTAF = taf
 
-        if address == None:
+        if address is None:
             # address = "http://140.90.128.70/pub/data/forecasts/taf/stations/%ICAO%.TXT"
             # address = "http://204.227.127.33/metars/index.php?station_ids=%ICAO%&std_trans=standard&hoursStr=most+recent+only&chk_tafs=on&submitmet=Submit"
             address = "http://aviationweather.gov/adds/tafs/index.php?station_ids=%ICAO%&std_trans=standard&hoursStr=most+recent+only&chk_tafs=on&submitmet=Submit"
@@ -235,7 +238,6 @@ class taf:
         _valid = re.compile("^TAF\ |TEMPO|B(E)?CMG|PROB|GRADU|RAPID|%s" % ICAO)
         for line in report:
             if _valid.search(line) is not None:
-                TAFFound = True
                 tl = {
                     "period": "",
                     "wind": "",
@@ -405,12 +407,12 @@ class taf:
         t0 = dd * 24 * 60 + hh * 60 + mm
         for line in self.tafData:
             if "/" in line["period"].strip():
-                l = line["period"].strip()
+                elem = line["period"].strip()
                 fromDD, fromHH, toDD, toHH = (
-                    int(l[0:2]),
-                    int(l[2:4]),
-                    int(l[5:7]),
-                    int(l[7:9]),
+                    int(elem[0:2]),
+                    int(elem[2:4]),
+                    int(elem[5:7]),
+                    int(elem[7:9]),
                 )
                 fs, fe = (fromDD * 24 * 60 + fromHH * 60, toDD * 24 * 60 + toHH * 60)
                 if between(fs, t0, fe) and R >= abs(fe - fs):
@@ -426,7 +428,7 @@ class taf:
         """
         Return the wind speed in meters per second.
         """
-        if self.weather == None:
+        if self.weather is None:
             return False
 
         wind = self.weather["wind"].split()[1:]
@@ -450,7 +452,7 @@ class taf:
         return windSpeed
 
     def getWindDirection(self):
-        if self.weather == None:
+        if self.weather is None:
             return False
 
         direction = self.weather["wind"].split()
@@ -458,8 +460,8 @@ class taf:
         if "V" in direction:
             return [
                 int(direction[0]),
-                int(wind[wind.index("V") - 1]),
-                int(wind[wind.index("V") + 1]),
+                int(direction[direction.index("V") - 1]),
+                int(direction[direction.index("V") + 1]),
             ]
         else:
             if direction != [] and direction[0] != "VRB":
@@ -468,7 +470,7 @@ class taf:
                 return ["VRB"]
 
     def getVisibility(self):  # in kilometers, only simple examples
-        if self.weather == None:
+        if self.weather is None:
             return False
 
         vis = self.weather["vis"].strip()
@@ -480,7 +482,7 @@ class taf:
                 return int(vis[-3]) * self.mi2km
             else:
                 return int(vis) / 1000.0  # or None
-        except:
+        except ValueError:
             pass
             return None
 
@@ -504,7 +506,7 @@ class taf:
         return None
 
     def getWeather(self):
-        if self.weather == None:
+        if self.weather is None:
             return False
 
         wx = ["", "", ""]

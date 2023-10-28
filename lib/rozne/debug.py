@@ -23,7 +23,8 @@
 # debug.path (stored in config) as yy-mm-dd.log.
 
 from config import debug as config
-import datetime, os
+import datetime
+import os
 
 
 # When module wants to log something it should give its name, message
@@ -47,7 +48,7 @@ def log(moduleName, message, buglevel=0):
             logfile = open(filename, "a+")
         try:
             logfile.write(message + "\n")
-        except:
+        except OSError:
             print(dt.strftime("%x %X UTC") + " [DEBUG]:\tCan't write to file!")
         finally:
             logfile.close()

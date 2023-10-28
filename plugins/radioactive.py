@@ -1,9 +1,11 @@
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 
-import urllib.request, urllib.error, urllib.parse
 import logging
 import socket
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from sr0wx_module import SR0WXModule
 

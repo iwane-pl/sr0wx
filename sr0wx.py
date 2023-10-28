@@ -36,13 +36,17 @@
 
 import contextlib
 import importlib
-import os
-import pygame
-import logging, logging.handlers
+import logging
 import logging.config
-import numpy
-import urllib.request, urllib.error, urllib.parse
+import logging.handlers
+import os
 import socket
+import urllib.error
+import urllib.parse
+import urllib.request
+
+import numpy
+import pygame
 
 try:
     import tomllib
@@ -349,7 +353,7 @@ if __name__ == "__main__":
             elif isinstance(el, numpy.ndarray):
                 # sample in an array form
                 sound = pygame.sndarray.make_sound(el)
-                if config.pygame_bug == 1:
+                if cfg_data["options"]["pygame_bugfix"]:
                     sound = pygame.sndarray.make_sound(
                         pygame.sndarray.array(sound)[
                             : len(pygame.sndarray.array(sound)) / 2

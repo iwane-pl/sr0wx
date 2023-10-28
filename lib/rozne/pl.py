@@ -73,7 +73,11 @@
 #
 # This dictionary is used by all SR0WX modules.
 
-fake_gettext = lambda s: s
+
+def fake_gettext(s):
+    return s
+
+
 _ = fake_gettext
 
 # Units and grammar cases
@@ -89,7 +93,6 @@ C = ["stopien_celsjusza", "stopnie_celsjusza", "stopni_celsjusza"]
 km = ["kilometr", "kilometry", "kilometrow"]
 mns = ["minuta", "minuty", "minut"]
 tendention = ["tendencja_spadkowa", "", "tendencja_wzrostowa"]
-
 
 # We need also local names for directions to convert two- or three letters
 # long wind direction into words (first is used as prefix, second as suffix):
@@ -121,7 +124,9 @@ ws = """x x x
    milion miliony milionów
    miliard miliardy miliardów
    bilion biliony bilionów"""
-wielkie = [l.split() for l in ws.split("\n")]
+
+wielkie = [letter.split() for letter in ws.split("\n")]
+
 
 ##zlotowki=u"""złoty złote złotych""".split()
 ##grosze=u"""grosz grosze groszy""".split()
@@ -252,7 +257,7 @@ def removeDiacritics(text, remove_spaces=False):
         .replace("ź", "z")
         .replace("ż", "z")
     )
-    if remove_spaces == False:
+    if not remove_spaces:
         return rv
     else:
         return rv.replace(" ", "_")
@@ -262,7 +267,7 @@ def removeDiacritics(text, remove_spaces=False):
 # It doesn't return year value.
 def readISODT(ISODT):
     _rv = ()  # return value
-    y, m, d, hh, mm, ss = (
+    _, m, d, hh, mm, _ = (
         int(ISODT[0:4]),
         int(ISODT[5:7]),
         int(ISODT[8:10]),
@@ -355,7 +360,7 @@ def readISODT(ISODT):
 
 def readISODate(ISODate):
     _rv = ()  # return value
-    y, m, d, hh, mm, ss = (
+    _, _, d, *_ = (
         int(ISODate[0:4]),
         int(ISODate[5:7]),
         int(ISODate[8:10]),
@@ -511,7 +516,6 @@ y_weather.conditions = {
     "3200": "",  # not available
 }
 
-
 # These dictionaries are used by meteoalarm module.
 meteoalarmAwarenesses = [
     "",
@@ -553,7 +557,6 @@ meteoalarmRegions = {
 meteoalarmAwareness = "zagrozenia_meteorologiczne_dla_wojewodztwa"
 today = "dzis"
 tomorrow = "jutro"
-
 
 # World Weather Online
 
@@ -651,6 +654,5 @@ awalvls = [
 
 river = "rzeka"
 station = "wodowskaz"
-
 
 source = "zrodlo"

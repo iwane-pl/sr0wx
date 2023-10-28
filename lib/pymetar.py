@@ -19,7 +19,9 @@
 import fpformat
 import math
 import re
-import urllib.request, urllib.error, urllib.parse
+import urllib.request
+import urllib.error
+import urllib.parse
 
 __author__ = "klausman-pymetar@schwarzvogel.de"
 
@@ -47,7 +49,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
 Please e-mail bugs to: %s""" % (__version__, __author__)
-
 
 CLOUD_RE_STR = r"^(CAVOK|CLR|SKC|BKN|SCT|FEW|OVC|NSC)([0-9]{3})?$"
 COND_RE_STR = r"^(-|\\+)?(VC|MI|BC|PR|TS|BL|SH|DR|FZ)?\
@@ -834,8 +835,8 @@ class ReportParser:
             if phenomenon is not None:
                 (name, pixmap, phenomenon) = phenomenon
                 pheninfo = phenomenon.get(squal, name)
-                if type(pheninfo) != type(()):
-                    return (pheninfo, pixmap)
+                if isinstance(pheninfo, tuple):
+                    return pheninfo, pixmap
                 else:
                     # contains pixmap info
                     return pheninfo

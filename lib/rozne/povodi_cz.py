@@ -16,11 +16,15 @@
 #   limitations under the License.
 #
 
-import urllib.request, urllib.parse, urllib.error
-from . import debug
 import json
 import os
+import urllib.error
+import urllib.parse
+import urllib.request
+
 import BeautifulSoup
+
+from . import debug
 
 lang = None
 
@@ -85,7 +89,7 @@ def my_import(name):
     return mod
 
 
-def getData(l):
+def getData(lang_module):
     data = {
         "data": "",
         "needCTCSS": False,
@@ -217,7 +221,7 @@ def get_region(region):
                             .findAll("font")[0]
                             .findAll("b")[0]
                         )[3:-4]
-                except:
+                except Exception:
                     debug.log(
                         "POVODI_CZ",
                         str(r1.findAll("tr")[1].findAll("tr")[0]),
@@ -290,7 +294,7 @@ def generate_json(regions=None, dont_save=False):
             )
             pass
 
-    if dont_save == False:
+    if not dont_save:
         json.dump(rv, open("povodi_cz.json", "w"))
 
     return rv
@@ -376,8 +380,9 @@ if __name__ == "__main__":
         def log(self, module, message, buglevel=None):
             print(message)
 
-    debug = DummyDebug()
+    # debug = DummyDebug()
     import sys
+
     # I know it would be better to use getopt or similar, but is there a point
     # for using such a moloch for barely two options?
 

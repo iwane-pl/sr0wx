@@ -97,7 +97,7 @@ def cw(
             farnsworth = abs(farnsworth)
             if farnsworth > wpm:
                 farnsworth = wpm
-        except:
+        except ValueError:
             farnsworth = wpm
             pass
     else:
@@ -202,7 +202,7 @@ def play(
         pygame.sndarray.array(s)[: len(pygame.sndarray.array(s)) / 2]
     )
     c = s.play()
-    while c.get_busy() == True:
+    while c.get_busy():
         pygame.time.wait(25)
 
 

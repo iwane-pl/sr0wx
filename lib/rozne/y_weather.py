@@ -16,15 +16,23 @@
 #   limitations under the License.
 #
 
-fake_gettext = lambda s: s
-_ = fake_gettext
+
+import datetime
+import urllib.error
+import urllib.parse
+import urllib.request
+from xml.dom import minidom
 
 from config import y_weather as config
 
-# For debugging purposes:
 
-from . import debug
-import urllib.request, urllib.error, urllib.parse
+def fake_gettext(s):
+    return s
+
+
+_ = fake_gettext
+
+# For debugging purposes:
 
 lang = None
 
@@ -40,14 +48,17 @@ def my_import(name):
 # Taken from http://developer.yahoo.com/python/python-xml.html (SLIGHTLY modified)
 # simple and elegant, but I HATE XML!
 
-import urllib.request, urllib.parse, urllib.error
-from xml.dom import minidom
 
-import datetime
+def format_date_time(s):
+    return datetime.datetime.strptime(s, "%a, %d %b %Y %I:%M %p %Z")
 
-format_date_time = lambda s: datetime.datetime.strptime(s, "%a, %d %b %Y %I:%M %p %Z")
-format_date = lambda s: datetime.datetime.strptime(s, "%d %b %Y")
-kmph2mps = lambda s: round(float(s) * (5.0 / 18.0))
+
+def format_date(s):
+    return datetime.datetime.strptime(s, "%d %b %Y")
+
+
+def kmph2mps(s):
+    return round(float(s) * (5.0 / 18.0))
 
 
 def weather_for_zip(zip_code):
@@ -64,7 +75,7 @@ def weather_for_zip(zip_code):
                 "date": format_date(node.getAttribute("date")),
                 "low": int(node.getAttribute("low")),
                 "high": int(node.getAttribute("high")),
-                #'condition': node.getAttribute('text')
+                # 'condition': node.getAttribute('text')
                 "condition": int(node.getAttribute("code")),
             }
         )
@@ -73,7 +84,7 @@ def weather_for_zip(zip_code):
     atmosphere = dom.getElementsByTagNameNS(WEATHER_NS, "atmosphere")[0]
 
     return {
-        #'current_condition': ycondition.getAttribute('text'),
+        # 'current_condition': ycondition.getAttribute('text'),
         "pub_date": format_date_time(
             dom.getElementsByTagName("pubDate")[0].firstChild.data
         ),
@@ -87,14 +98,14 @@ def weather_for_zip(zip_code):
         "pressure": float(atmosphere.getAttribute("pressure")),
         "tendention": atmosphere.getAttribute("rising"),
         "forecasts": forecasts,
-        #'title': dom.getElementsByTagName('title')[0].firstChild.data
+        # 'title': dom.getElementsByTagName('title')[0].firstChild.data
     }
 
 
-def getData(l):
+def getData(lang_module):
     rv = {"data": "", "needCTCSS": False, "source": "y_weather"}
 
-    lang = my_import(l + "." + l)
+    lang = my_import(lang_module + "." + lang_module)
     conditions = lang.y_weather.conditions
 
     w = weather_for_zip(config.zipcode)
@@ -107,7 +118,8 @@ def getData(l):
         "WIND_DIR_NEWS": "",
         "WIN_DIR_DEG": lang.cardinal(w["wind_direction"], lang.deg),
         "WIND_SPEED": lang.cardinal(int(w["wind_speed"]), lang.mPs),
-        "VISIBILITY_KM": "",  # lang.cardinal(w['visibility'], lang.km),                     '' =>  None == nieograniczona
+        "VISIBILITY_KM": "",
+        # lang.cardinal(w['visibility'], lang.km),                     '' =>  None == nieograniczona
         "PRESSURE": lang.cardinal(int(w["pressure"]), lang.hPa),
         "PRESSURE_TENDENTION": lang.tendention[int(w["tendention"])],
         "TEMP_WIND_CHILL": lang.cardinal(w["wind_chill"], lang.C),

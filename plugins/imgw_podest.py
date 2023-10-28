@@ -1,6 +1,11 @@
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
+import base64
+import json
+import logging
 import os.path
+import subprocess
+
 #   Copyright 2009-2012 Michal Sadowski (sq6jnx at hamradio dot pl)
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,13 +20,6 @@ import os.path
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
-
-import urllib.request, urllib.error, urllib.parse
-import re
-import json
-import logging
-import base64
-import subprocess
 
 try:
     import tomllib

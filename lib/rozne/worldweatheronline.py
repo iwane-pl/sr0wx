@@ -16,10 +16,12 @@
 #   limitations under the License.
 #
 
-from . import debug
-import urllib.request, urllib.error, urllib.parse
-import json
 import datetime
+import json
+import urllib.error
+import urllib.parse
+import urllib.request
+
 import pytz
 from config import world_weather_online as config
 
@@ -29,7 +31,7 @@ def wind_direction(dir, short=False):
     global lang
 
     _dir = ""
-    if len(dir) == 3 and short == True:
+    if len(dir) == 3 and short:
         dir = dir[1:3]
     for i in range(0, len(dir) - 1):
         _dir = _dir + lang.directions[dir[i]][0]
@@ -46,12 +48,13 @@ def my_import(name):
     return mod
 
 
-kmph2mps = lambda s: int(round(float(s) * (5.0 / 18.0)))
+def kmph2mps(s):
+    return int(round(float(s) * (5.0 / 18.0)))
 
 
-def getData(l):
+def getData(lang_module):
     global lang
-    lang = my_import(l + "." + l)
+    lang = my_import(lang_module + "." + lang_module)
     rv = {"data": "", "needCTCSS": False, "source": "worldweatheronline"}
 
     REQ_URL = "http://free.worldweatheronline.com/feed/weather.ashx?q={LAT},{LON}&format=json&num_of_days=2&key={API_KEY}"
@@ -92,10 +95,10 @@ def getData(l):
         ),
         "CURRENT_CLOUDCOVER": lang.cardinal(int(w["cloudcover"]), lang.percent),
         "CURRENT_HUMIDITY": lang.cardinal(int(w["humidity"]), lang.percent),
-        #'CURRENT_PRECIP_MM':float(w['precipMM']),
+        # 'CURRENT_PRECIP_MM':float(w['precipMM']),
         "CURRENT_PRESSURE": lang.cardinal(int(w["pressure"]), lang.hPa),
         "CURRENT_TEMP_C": lang.cardinal(int(w["temp_C"]), lang.C),
-        #'CURRENT_TEMP_F':int(w['temp_F']),
+        # 'CURRENT_TEMP_F':int(w['temp_F']),
         "CURRENT_WEATHER": lang.removeDiacritics(
             wc[w["weatherCode"]], remove_spaces=True
         ),
@@ -106,11 +109,11 @@ def getData(l):
             kmph2mps(int(w["windspeedKmph"])), lang.mPs
         ),
         "CURRENT_WIND_SPEED_MI": lang.cardinal(int(w["windspeedMiles"]), lang.MiPh),
-        #'FCAST0_PRECIP_MM':float(f0['precipMM']),
+        # 'FCAST0_PRECIP_MM':float(f0['precipMM']),
         "FCAST0_TEMP_MIN_C": lang.cardinal(int(f0["tempMinC"])),
         "FCAST0_TEMP_MAX_C": lang.cardinal(int(f0["tempMaxC"]), lang.C),
-        #'FCAST0_TEMP_MIN_F':int(f0['tempMinF']),
-        #'FCAST0_TEMP_MAX_F':int(f0['tempMaxF']),
+        # 'FCAST0_TEMP_MIN_F':int(f0['tempMinF']),
+        # 'FCAST0_TEMP_MAX_F':int(f0['tempMaxF']),
         "FCAST0_WEATHER": lang.removeDiacritics(
             wc[f0["weatherCode"]], remove_spaces=True
         ),
@@ -121,11 +124,11 @@ def getData(l):
             kmph2mps(int(f0["windspeedKmph"])), lang.mPs
         ),
         "FCAST0_WIND_SPEED_MI": int(f0["windspeedMiles"]),
-        #'FCAST1_PRECIP_MM':float(f1['precipMM']),
+        # 'FCAST1_PRECIP_MM':float(f1['precipMM']),
         "FCAST1_TEMP_MIN_C": lang.cardinal(int(f1["tempMinC"])),
         "FCAST1_TEMP_MAX_C": lang.cardinal(int(f1["tempMaxC"]), lang.C),
-        #'FCAST1_TEMP_MIN_F':int(f1['tempMinF']),
-        #'FCAST1_TEMP_MAX_F':int(f1['tempMaxF']),
+        # 'FCAST1_TEMP_MIN_F':int(f1['tempMinF']),
+        # 'FCAST1_TEMP_MAX_F':int(f1['tempMaxF']),
         "FCAST1_WEATHER": lang.removeDiacritics(
             wc[f1["weatherCode"]], remove_spaces=True
         ),

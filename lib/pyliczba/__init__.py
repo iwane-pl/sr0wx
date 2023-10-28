@@ -1,1 +1,1 @@
-from .kwotaslownie import *
+from .kwotaslownie import *  # noqa: F403

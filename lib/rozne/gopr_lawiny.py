@@ -17,7 +17,9 @@
 #
 
 import re
-import urllib.request, urllib.parse, urllib.error
+import urllib.request
+import urllib.parse
+import urllib.error
 
 from config import gopr_lawiny as config
 import datetime
@@ -57,7 +59,7 @@ def pobierzOstrzezenia(region):
     _tendencja = re.compile("img/lawina/strzalka(\d)\.gif")
     _wystawa = re.compile("img/lawina/pikto/roza(\d)\.gif")
 
-    brak, stopien, tendencja, wystawa = False, False, False, False
+    brak, stopien, tendencja, wystawa = False, False, False, False  # noqa: F841
     line = downloadFile(url)
     if _brak.findall(line) != []:
         return (-1, -1, -1)
@@ -73,14 +75,14 @@ def pobierzOstrzezenia(region):
             int(dt[0]), int(dt[1]), int(dt[2]), int(dt[3]), int(dt[4]), int(dt[5])
         )
         if infoDT + delta < now:
-            aktualny = False
+            aktualny = False  # noqa: F841
 
     return (int(stopien), int(tendencja), int(wystawa))
 
 
-def getData(l):
+def getData(lang_module):
     global lang
-    lang = my_import(l + "." + l)
+    lang = my_import(lang_module + "." + lang_module)
 
     data = {
         "data": "",

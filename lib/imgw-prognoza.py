@@ -16,9 +16,10 @@
 #   limitations under the License.
 #
 
-import urllib.request, urllib.parse, urllib.error
+import urllib.request
+import urllib.parse
+import urllib.error
 import re
-import datetime
 
 
 class imgw_prognoza:
@@ -120,8 +121,9 @@ class imgw_prognoza:
 
         self.przygotujPrognoze()
 
-    def przygotujPrognoze(self, datetime):
-        deltaT = 31 * 24 * 60  # 1 month in minutes
+    # def przygotujPrognoze(self, datetime):
+    #     deltaT = 31 * 24 * 60  # 1 month in minutes
+    #
 
 
 url = """http://www.pogodynka.pl/miasto.php?miasto=Wroc%B3aw&gmina=Wroc%B3aw&powiat=Wroc%B3aw&wojewodztwo=dolno%B6l%B1skie&czas=&model="""

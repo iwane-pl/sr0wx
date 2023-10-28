@@ -20,60 +20,101 @@ import re
 import urllib
 
 from config import meteoalarm as config
-lang=None
+
+lang = None
+
 
 def downloadFile(url):
     webFile = urllib.urlopen(url)
     return webFile.read()
 
+
 def my_import(name):
     mod = __import__(name)
-    components = name.split('.')
+    components = name.split(".")
     for comp in components[1:]:
         mod = getattr(mod, comp)
     return mod
 
-def getData(l):
+
+def getData(lang_module):
     global lang
-    lang = my_import(l+"."+l)
+    lang = my_import(lang_module + "." + lang_module)
 
-    data = {"data":"", "needCTCSS":False, "debug":None, "allOK":True,
-            "source":"meteoalarm_eu"}
+    data = {
+        "data": "",
+        "needCTCSS": False,
+        "debug": None,
+        "allOK": True,
+        "source": "meteoalarm_eu",
+    }
 
-    today=tomorrow=""
-    if config.showToday == True:
-        today    = getAwareness(config.region, tomorrow=False)
-    if config.showTomorrow == True:
+    today = tomorrow = ""
+    if config.showToday:
+        today = getAwareness(config.region, tomorrow=False)
+    if config.showTomorrow:
         tomorrow = getAwareness(config.region, tomorrow=True)
 
-    if today== "" and tomorrow== "":
-        #data["data"] = " ".join( (lang.meteoalarmNoAwareness, lang.meteoalarmRegions[config.region]) )
-        pass # silence is golden
-    elif today!= "" and tomorrow=="":
-        data["data"] =  " ".join( (lang.meteoalarmAwareness, lang.meteoalarmRegions[config.region], lang.today, today) )
+    if today == "" and tomorrow == "":
+        # data["data"] = " ".join( (lang.meteoalarmNoAwareness, lang.meteoalarmRegions[config.region]) )
+        pass  # silence is golden
+    elif today != "" and tomorrow == "":
+        data["data"] = " ".join(
+            (
+                lang.meteoalarmAwareness,
+                lang.meteoalarmRegions[config.region],
+                lang.today,
+                today,
+            )
+        )
         data["needCTCSS"] = True
-    elif today== "" and tomorrow!="":
-        data["data"] =  " ".join( (lang.meteoalarmAwareness, lang.meteoalarmRegions[config.region], lang.tomorrow, tomorrow) )
-        data["needCTCSS"]= True
+    elif today == "" and tomorrow != "":
+        data["data"] = " ".join(
+            (
+                lang.meteoalarmAwareness,
+                lang.meteoalarmRegions[config.region],
+                lang.tomorrow,
+                tomorrow,
+            )
+        )
+        data["needCTCSS"] = True
     else:
-        data["data"] = " ".join( (lang.meteoalarmAwareness, lang.meteoalarmRegions[config.region], lang.today, today, lang.tomorrow,tomorrow) )
-        data["needCTCSS"]= True
+        data["data"] = " ".join(
+            (
+                lang.meteoalarmAwareness,
+                lang.meteoalarmRegions[config.region],
+                lang.today,
+                today,
+                lang.tomorrow,
+                tomorrow,
+            )
+        )
+        data["needCTCSS"] = True
 
     return data
 
-def getAwareness(region, tomorrow=False):
-# tommorow = False -- awareness for today
-# tommorow = True  -- awareness for tommorow
-    r =   re.compile(r'pictures/aw(\d[01]?)([0234]).jpg')
-    url = "http://www.meteoalarm.eu/index3.php?area=%s&day=%s&lang=EN"\ %(str(region),str(int(tomorrow)))
 
+def getAwareness(region, tomorrow=False):
+    # tommorow = False -- awareness for today
+    # tommorow = True  -- awareness for tommorow
+    r = re.compile(r"pictures/aw(\d[01]?)([0234]).jpg")
+    url = "http://www.meteoalarm.eu/index3.php?area=%s&day=%s&lang=EN" % (
+        str(region),
+        str(int(tomorrow)),
+    )
 
     a = ""
 
-    for line in downloadFile(url).split('\n'):
+    for line in downloadFile(url).split("\n"):
         f = r.findall(line)
-        if len(f) is not 0 and int(f[0][0])!=0:
-            a = " ".join( (a, lang.meteoalarmAwarenesses[int(f[0][0])],\
-                lang.meteoalarmAwarenessLevel, lang.meteoalarmAwarenessLvl[int(f[0][1])]) )
+        if len(f) != 0 and int(f[0][0]) != 0:
+            a = " ".join(
+                (
+                    a,
+                    lang.meteoalarmAwarenesses[int(f[0][0])],
+                    lang.meteoalarmAwarenessLevel,
+                    lang.meteoalarmAwarenessLvl[int(f[0][1])],
+                )
+            )
 
     return a

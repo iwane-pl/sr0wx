@@ -17,41 +17,58 @@
 #
 
 
-# TODO: sprawdzanie, dla których wodowskazów możemy czytać komunikaty 
+# TODO: sprawdzanie, dla których wodowskazów możemy czytać komunikaty
 
-import os
-import urllib.request, urllib.parse, urllib.error
+import urllib.request
+import urllib.parse
+import urllib.error
 import re
+
 
 def format(s):
     """Zwraca "bezpieczną" nazwę dla nazwy danej rzeki/danego
     wodowskazu. Ze względu na to, że w Polsce zarówno płynie
     rzeka Ślęza jak i Ślęża oznaczany jest każdy niełaciński
     znak"""
-    if str(s.__class__)=="<type 'str'>":
-        s=str(s, 'utf-8')
-    return s.lower().replace('ą','a_').replace('ć','c_').\
-        replace('ę','e_').replace('ł','l_').\
-        replace('ń','n_').replace('ó','o_').\
-        replace('ś','s_').replace('ź','x_').\
-        replace('ż','z_').replace(' ','_').\
-        replace('-','_').replace('(','').\
-        replace(')','')
+    if str(s.__class__) == "<type 'str'>":
+        s = str(s, "utf-8")
+    return (
+        s.lower()
+        .replace("ą", "a_")
+        .replace("ć", "c_")
+        .replace("ę", "e_")
+        .replace("ł", "l_")
+        .replace("ń", "n_")
+        .replace("ó", "o_")
+        .replace("ś", "s_")
+        .replace("ź", "x_")
+        .replace("ż", "z_")
+        .replace(" ", "_")
+        .replace("-", "_")
+        .replace("(", "")
+        .replace(")", "")
+    )
 
 
-wodowskazy={}
+wodowskazy = {}
 
-_wodowskaz=re.compile('Stacja\:\ (.{1,}?)\<')
-_rzeka=re.compile("""Rzeka\:\ (.{1,}?)\<|(Jezioro\ .{1,}?)\<|(Zalew\ .{1,}?)|(Morze\ Ba..tyckie)""", re.MULTILINE)
-_stan=re.compile('Stan\ Wody\ H\ \[cm\]\:\ (.{1,}?)\<')
-_nnw=re.compile('NNW\:(\d{1,})')
-_ssw=re.compile('SSW\:(\d{1,})')
-_www=re.compile('WWW\:(\d{1,})')
-_przeplyw=re.compile('Przepływ\ Q\ \[m3/s\]:\ (.{1,}?)\<')
-_czas=re.compile('Czas\(UTC\)\:\ (\d{4}-\d{2}-\d{2}\ \d{2}\:\d{2}\:\d{2})')
+_wodowskaz = re.compile("Stacja\:\ (.{1,}?)\<")
+_rzeka = re.compile(
+    """Rzeka\:\ (.{1,}?)\<|(Jezioro\ .{1,}?)\<|(Zalew\ .{1,}?)|(Morze\ Ba..tyckie)""",
+    re.MULTILINE,
+)
+_stan = re.compile("Stan\ Wody\ H\ \[cm\]\:\ (.{1,}?)\<")
+_nnw = re.compile("NNW\:(\d{1,})")
+_ssw = re.compile("SSW\:(\d{1,})")
+_www = re.compile("WWW\:(\d{1,})")
+_przeplyw = re.compile("Przepływ\ Q\ \[m3/s\]:\ (.{1,}?)\<")
+_czas = re.compile("Czas\(UTC\)\:\ (\d{4}-\d{2}-\d{2}\ \d{2}\:\d{2}\:\d{2})")
 
-_przekroczenieStanu=re.compile('stan\ (ostrzegawczy|alarmowy)')
-_przekroczenieStanuStan=re.compile('stan\ (?:ostrzegawczy|alarmowy)\</b\>\ \((\d{1,})cm\)')
+_przekroczenieStanu = re.compile("stan\ (ostrzegawczy|alarmowy)")
+_przekroczenieStanuStan = re.compile(
+    "stan\ (?:ostrzegawczy|alarmowy)\</b\>\ \((\d{1,})cm\)"
+)
+
 
 def getFile(url):
     webFile = urllib.request.urlopen(url)
@@ -59,12 +76,14 @@ def getFile(url):
     webFile.close()
     return contents
 
-def flatten(x): # przerobić na lambda?
+
+def flatten(x):  # przerobić na lambda?
     """flatten(table) -> table[0] or None"""
-    if x==[]:
+    if x == []:
         return None
     else:
         return x[0]
+
 
 def zaladujRegion(region):
     """Funckcja służy do pobierania listy dostępnych wodowskazów ze strony IMGW
@@ -72,7 +91,7 @@ def zaladujRegion(region):
 
 
     Korzystamy tutaj z faktu, że 1. Hash tables w JS mają składnię identyczną do pythonowych
-    słowników; 2. W pliku są 2 słowniki a nas interesuje tylko pierwszy; 3. Python potrafi 
+    słowników; 2. W pliku są 2 słowniki a nas interesuje tylko pierwszy; 3. Python potrafi
     interpretować sam siebie :)
 
     2011-08-30: trzeba to jak najszybciej przerobić na JSON, eval is evil!"""
@@ -80,42 +99,56 @@ def zaladujRegion(region):
     global wodowskazy
 
     try:
-        debug.log("IMGW-HYDRO", 'Pobieram dane dla regionu %s'%region)
-        dane = getFile('http://www.pogodynka.pl/http/assets/products/podest/podest/hydro/mapy/dane%s.js'%str(region))
-        debug.log("IMGW-HYDRO", 'Przetwarzam...')
+        debug.log("IMGW-HYDRO", "Pobieram dane dla regionu %s" % region)
+        dane = getFile(
+            "http://www.pogodynka.pl/http/assets/products/podest/podest/hydro/mapy/dane%s.js"
+            % str(region)
+        )
+        debug.log("IMGW-HYDRO", "Przetwarzam...")
         # NOTE: teraz trochę zabawnych rzeczy: następna linijka zadziała poprawnie tylko wtedy,
         # kiedy w następnej będzie coś w rodzaju "print"
         # wodowskazy.update(eval('{'+dane.split('{')[1].split('}')[0]+'}'))
         # print wodowskazy
         # próbujemy inaczej:
-        wodowskazy = dict(eval('{'+dane.split('{')[1].split('}')[0]+'}'), **wodowskazy)
-    except:
-        debug.log("IMGW-HYDRO", 'Nie udało się pobrać danych o wodowskazach dla regionu %s'%region, buglevel=6)
+        # TODO: fix eval
+        wodowskazy = dict(
+            eval("{" + dane.split("{")[1].split("}")[0] + "}"), **wodowskazy
+        )
+    except Exception:
+        debug.log(
+            "IMGW-HYDRO",
+            "Nie udało się pobrać danych o wodowskazach dla regionu %s" % region,
+            buglevel=6,
+        )
         pass
-    
+
+
 def pobierzDaneWodowskazu(wodowskaz):
     global wodowskazy
-    if '.' in wodowskaz:
-        wodowskaz = wodowskaz.split('.')[1] # pozbywamy się numeru regionu
-    dane = wodowskazy[wodowskaz] # po co cały czas mieszać słownikiem
+    if "." in wodowskaz:
+        wodowskaz = wodowskaz.split(".")[1]  # pozbywamy się numeru regionu
+    dane = wodowskazy[wodowskaz]  # po co cały czas mieszać słownikiem
 
-    #print dane
-    #print _rzeka.findall(dane)
-    
-    return {'numer':wodowskaz,
-        'nazwa':flatten(_wodowskaz.findall(dane)),
-        'rzeka': (' '.join(flatten(_rzeka.findall(dane)))).split('->')[0],
-        'stan':flatten(_stan.findall(dane)),
-        'nnw':flatten(_nnw.findall(dane)),
-        'ssw':flatten(_ssw.findall(dane)),
-        'www':flatten(_www.findall(dane)),
-        'przeplyw':flatten(_przeplyw.findall(dane)),
-        'czas':flatten(_czas.findall(dane)),
-        'przekroczenieStanu':flatten(_przekroczenieStanu.findall(dane)),
-        'przekroczenieStanuStan':flatten(_przekroczenieStanuStan.findall(dane)),}
+    # print dane
+    # print _rzeka.findall(dane)
 
-def getData(l):
-    data = {"data":"", "needCTCSS":False, "allOK":True, "source":"imgw"} 
+    return {
+        "numer": wodowskaz,
+        "nazwa": flatten(_wodowskaz.findall(dane)),
+        "rzeka": (" ".join(flatten(_rzeka.findall(dane)))).split("->")[0],
+        "stan": flatten(_stan.findall(dane)),
+        "nnw": flatten(_nnw.findall(dane)),
+        "ssw": flatten(_ssw.findall(dane)),
+        "www": flatten(_www.findall(dane)),
+        "przeplyw": flatten(_przeplyw.findall(dane)),
+        "czas": flatten(_czas.findall(dane)),
+        "przekroczenieStanu": flatten(_przekroczenieStanu.findall(dane)),
+        "przekroczenieStanuStan": flatten(_przekroczenieStanuStan.findall(dane)),
+    }
+
+
+def getData(lang_module):
+    data = {"data": "", "needCTCSS": False, "allOK": True, "source": "imgw"}
 
     stanyOstrzegawcze = {}
     stanyAlarmowe = {}
@@ -126,59 +159,67 @@ def getData(l):
 
     zaladowaneRegiony = []
     for wodowskaz in config.wodowskazy:
-        region = wodowskaz.split('.')[0]
+        region = wodowskaz.split(".")[0]
         if region not in zaladowaneRegiony:
             zaladujRegion(region)
             zaladowaneRegiony.append(region)
-	try:
+        try:
             w = pobierzDaneWodowskazu(wodowskaz)
-            
+
             # Chłyt debugowy sprawdzjący, czy mamy wszytkie sample: wszystkie rzeki
             # przełączamy na stan ostrzegawczy -- nie zapomnij wyłączyć!
-            #w['przekroczenieStanu']='alarmowy'
+            # w['przekroczenieStanu']='alarmowy'
             # Koniec chłytu
 
-            w['rzeka']=bezpiecznaNazwa(w['rzeka'])
-            w['nazwa']=bezpiecznaNazwa(w['nazwa'])
+            w["rzeka"] = bezpiecznaNazwa(w["rzeka"])
+            w["nazwa"] = bezpiecznaNazwa(w["nazwa"])
 
-            if w['przekroczenieStanu']=='ostrzegawczy':
-                if w['rzeka'] not in stanyOstrzegawcze:
-                    stanyOstrzegawcze[w['rzeka']]=[w['nazwa']]
+            if w["przekroczenieStanu"] == "ostrzegawczy":
+                if w["rzeka"] not in stanyOstrzegawcze:
+                    stanyOstrzegawcze[w["rzeka"]] = [w["nazwa"]]
                 else:
-                    stanyOstrzegawcze[w['rzeka']].append(w['nazwa'])
-            elif w['przekroczenieStanu']=='alarmowy':
-                if w['rzeka'] not in stanyAlarmowe:
-                    stanyAlarmowe[w['rzeka']]=[w['nazwa']]
+                    stanyOstrzegawcze[w["rzeka"]].append(w["nazwa"])
+            elif w["przekroczenieStanu"] == "alarmowy":
+                if w["rzeka"] not in stanyAlarmowe:
+                    stanyAlarmowe[w["rzeka"]] = [w["nazwa"]]
                 else:
-                    stanyAlarmowe[w['rzeka']].append(w['nazwa'])
-        except:
-            debug.log("IMGW-HYDRO", 'Brak danych dla wodowskazu %s'%str(wodowskaz))
+                    stanyAlarmowe[w["rzeka"]].append(w["nazwa"])
+        except KeyError:
+            debug.log("IMGW-HYDRO", "Brak danych dla wodowskazu %s" % str(wodowskaz))
             pass
 
-    if stanyOstrzegawcze!={} or stanyAlarmowe!={}:
-        data['data'] += 'komunikat_hydrologiczny_imgw _ '
+    if stanyOstrzegawcze != {} or stanyAlarmowe != {}:
+        data["data"] += "komunikat_hydrologiczny_imgw _ "
 
-        if stanyAlarmowe!={}:
-            # Sprawdzenie dla których wodowskazów mamy przekroczone 
+        if stanyAlarmowe != {}:
+            # Sprawdzenie dla których wodowskazów mamy przekroczone
             # stany alarmowe -- włącz ctcss
-            data['needCTCSS']=True
-            data['data']+=' przekroczenia_stanow_alarmowych '
+            data["needCTCSS"] = True
+            data["data"] += " przekroczenia_stanow_alarmowych "
             for rzeka in sorted(stanyAlarmowe.keys()):
-                data['data']+='rzeka %s wodowskaz %s '%(rzeka, \
-                    " wodowskaz ".join(sorted(stanyAlarmowe[rzeka])),)
+                data["data"] += "rzeka %s wodowskaz %s " % (
+                    rzeka,
+                    " wodowskaz ".join(sorted(stanyAlarmowe[rzeka])),
+                )
 
-        if stanyOstrzegawcze!={}:
-            data['data']+='_ przekroczenia_stanow_ostrzegawczych '
+        if stanyOstrzegawcze != {}:
+            data["data"] += "_ przekroczenia_stanow_ostrzegawczych "
             for rzeka in sorted(stanyOstrzegawcze.keys()):
-                data['data']+='rzeka %s wodowskaz %s '%(format(rzeka), \
-                    " wodowskaz ".join([format(w) for w in sorted(stanyOstrzegawcze[rzeka])]),)
+                data["data"] += "rzeka %s wodowskaz %s " % (
+                    format(rzeka),
+                    " wodowskaz ".join(
+                        [format(w) for w in sorted(stanyOstrzegawcze[rzeka])]
+                    ),
+                )
 
     debug.log("IMGW-HYDRO", "finished...")
 
     return data
 
+
 def show_help():
-    print("""
+    print(
+        """
 Lista wodowskazów danej zlewni dostępna po podaniu parametru:
 
  1. Zlewnia Sanu
@@ -197,20 +238,33 @@ Lista wodowskazów danej zlewni dostępna po podaniu parametru:
 14. Zlewnia dolnej Odry do Kostrzynia i zalewu Szczecińskiego
 
 Mapę zlewni można zobaczyć na stronie:
-http://www.pogodynka.pl/polska/podest/""")
+http://www.pogodynka.pl/polska/podest/"""
+    )
+
 
 def bezpiecznaNazwa(s):
     """Zwraca "bezpieczną" nazwę dla nazwy danej rzeki/danego
     wodowskazu. Ze względu na to, że w Polsce zarówno płynie
     rzeka Ślęza jak i Ślęża oznaczany jest każdy niełaciński
     znak"""
-    return str(s, 'utf-8').lower().replace('ą','a_').replace('ć','c_').\
-        replace('ę','e_').replace('ł','l_').\
-        replace('ń','n_').replace('ó','o_').\
-        replace('ś','s_').replace('ź','x_').\
-        replace('ż','z_').replace(' ','_').\
-        replace('-','_').replace('(','').\
-        replace(')','')
+    return (
+        str(s, "utf-8")
+        .lower()
+        .replace("ą", "a_")
+        .replace("ć", "c_")
+        .replace("ę", "e_")
+        .replace("ł", "l_")
+        .replace("ń", "n_")
+        .replace("ó", "o_")
+        .replace("ś", "s_")
+        .replace("ź", "x_")
+        .replace("ż", "z_")
+        .replace(" ", "_")
+        .replace("-", "_")
+        .replace("(", "")
+        .replace(")", "")
+    )
+
 
 def podajListeWodowskazow(region):
     rv = []
@@ -218,26 +272,34 @@ def podajListeWodowskazow(region):
         try:
             w = pobierzDaneWodowskazu(wodowskaz)
             rv.append(w)
-        except:
-            debug.log("IMGW-HYDRO", 'Brak danych dla wodowskazu %s'%str(wodowskaz))
+        except Exception:
+            debug.log("IMGW-HYDRO", "Brak danych dla wodowskazu %s" % str(wodowskaz))
             pass
     return rv
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
+
     class DummyDebug:
-        def log(self,module,message,buglevel=None):
+        def log(self, module, message, buglevel=None):
             pass
 
     debug = DummyDebug()
     import sys
+
     # tak, wiem, że można to zrobić bardziej elegancko (getopt), ale dla 2
     # opcji nie ma chyba sensu...
-    if len(sys.argv)==3 and sys.argv[1]=='gen' and int(sys.argv[2]) in range(1,14+1):
+    if (
+        len(sys.argv) == 3
+        and sys.argv[1] == "gen"
+        and int(sys.argv[2]) in range(1, 14 + 1)
+    ):
         region = sys.argv[2]
         # generowanie listy słów słownika; ostatnie słowo (rozielone spacją)
         # jest nazwą pliku docelowego
-    
-        print("""#!/usr/bin/python
+
+        print(
+            """#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 # Caution! I am not responsible for using these samples. Use at your own risk
@@ -253,29 +315,48 @@ END_MARKER = ' k'
 CUT_START = 0.9
 CUT_END=0.7
 
-download_list = [ """)
-        frazy = ['komunikat hydrologiczny imgw', 
-                'przekroczenia stanów ostrzegawczych',
-                'przekroczenia stanów alarmowych', 'rzeka', 'wodowskaz']
+download_list = [ """
+        )
+        frazy = [
+            "komunikat hydrologiczny imgw",
+            "przekroczenia stanów ostrzegawczych",
+            "przekroczenia stanów alarmowych",
+            "rzeka",
+            "wodowskaz",
+        ]
         for fraza in set(frazy):
-            #print fraza.encode('utf-8')
-            print("\t['%s', '%s'],"%(fraza.encode('utf-8'),
-                    format(fraza).encode('utf-8'),))
+            # print fraza.encode('utf-8')
+            print(
+                "\t['%s', '%s'],"
+                % (
+                    fraza.encode("utf-8"),
+                    format(fraza).encode("utf-8"),
+                )
+            )
 
-        frazy=[]
+        frazy = []
         zaladujRegion(int(region))
         for w in podajListeWodowskazow(int(region)):
-            frazy.append(w['rzeka'])
-            frazy.append(w['nazwa'])
+            frazy.append(w["rzeka"])
+            frazy.append(w["nazwa"])
         for fraza in set(frazy):
-            print("\t['ę. %s', '%s'],"%(fraza, str(bezpiecznaNazwa(fraza)),))
-        print(']')
-    elif len(sys.argv)==2 and int(sys.argv[1]) in range(1,14+1):
+            print(
+                "\t['ę. %s', '%s'],"
+                % (
+                    fraza,
+                    str(bezpiecznaNazwa(fraza)),
+                )
+            )
+        print("]")
+    elif len(sys.argv) == 2 and int(sys.argv[1]) in range(1, 14 + 1):
         # podaje listę wodowskazów w danym regionie (danej zlewni)
         region = sys.argv[1]
         zaladujRegion(int(region))
         for w in podajListeWodowskazow(int(region)):
-            print("'%s.%s',   # Nazwa: %s, rzeka: %s"%(region, w['numer'], w['nazwa'], w['rzeka']))
+            print(
+                "'%s.%s',   # Nazwa: %s, rzeka: %s"
+                % (region, w["numer"], w["nazwa"], w["rzeka"])
+            )
     else:
         show_help()
 else:

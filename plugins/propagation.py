@@ -1,9 +1,11 @@
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 
-import urllib.request, urllib.parse, urllib.error
 import logging
 import socket
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from PIL import Image
 
