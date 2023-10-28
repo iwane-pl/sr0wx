@@ -270,7 +270,7 @@ if __name__ == "__main__":
 
     logger.debug("Loaded modules: %s", modules)
     if args.modules:
-        modules = [m for m in modules if m.__module__ in args.modules]
+        modules = [m for m in modules if m.__module__.split(".")[-1] in args.modules]
     logger.debug("Used modules: %s", modules)
 
     is_connected = test_internet_connection()
@@ -292,8 +292,6 @@ if __name__ == "__main__":
     if cfg_data["playback"]["read_sources"]:
         if len(sources) > 1:
             message.extend(sources)
-    else:
-        message.extend(sources)
     message.extend(GOODBYE_MSG)
 
     # It's time to init ``pygame``'s mixer (and ``pygame``).

@@ -1,0 +1,14 @@
+{
+  "id_stacji": "151180070",
+  "stacja": "Gorz\u00f3w \u015al\u0105ski",
+  "rzeka": "Prosna",
+  "wojew\u00f3dztwo": "opolskie",
+  "stan_wody": "145",
+  "stan_wody_data_pomiaru": "2023-10-28 20:50:00",
+  "temperatura_wody": "5.75",
+  "temperatura_wody_data_pomiaru": "2018-04-04 13:00:00",
+  "zjawisko_lodowe": "0",
+  "zjawisko_lodowe_data_pomiaru": "2022-03-10 08:00:00",
+  "zjawisko_zarastania": "202",
+  "zjawisko_zarastania_data_pomiaru": "2023-09-12 07:00:00"
+}
