@@ -79,6 +79,7 @@ COLOR_ENDC = Style.RESET_ALL
 LICENSE = """
 
 Copyright 2009-2014 Michal Sadowski (sq6jnx at hamradio dot pl)
+Copyright 2023 Piotr Falkowski (sq9itq at gmail dot com)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -94,7 +95,7 @@ limitations under the License.
 
 -----------------------------------------------------------
 
-You can find full list of contributors on github.com/sq6jnx/sr0wx.py
+You can find full list of contributors on github.com/iwane-pl/sr0wx
 
 """
 
