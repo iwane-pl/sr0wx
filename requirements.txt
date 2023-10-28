@@ -11,3 +11,4 @@ six
 urllib3
 tomli; python_version < "3.11"
 colorama
+msgspec
