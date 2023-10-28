@@ -38,7 +38,7 @@ additional_info = "Eksperymentalna stacja pogodowa"
 enabled = true
 service_url = 'http://api.openweathermap.org/data/2.5/'
 # TODO: take it from an envvar
-api_key = 'ee78911a0fb560b58144230f46e0d4b2'
+api_key = ''
 
 [plugins.imgw_podest]
 # TODO: Remove dependency on php
@@ -63,10 +63,14 @@ mode = 'nearest'  # point|nearest|installationId
 maxDistanceKM = 5
 installationId = 8077  # Mikołajska Kraków
 # TODO: take it from an envvar
-api_key = '02b3a79363c3497dbb992093cd9d7779'
+api_key = ''
 
 [plugins.geo_magnetic]
-enabled = true
+# GisMeteo has a subscription plan. Broadcast of that data is prohibited without
+# it.
+# https://www.gismeteo.pl/page/agreement/
+# https://www.gismeteo.pl/page/data/
+enabled = false
 service_url = "https://www.gismeteo.pl/weather-krakow-3212/gm/"
 
 [plugins.radioactive]
