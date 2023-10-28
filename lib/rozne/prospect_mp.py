@@ -16,13 +16,14 @@
 #   limitations under the License.
 #
 
-import re
-import urllib.request, urllib.parse, urllib.error
-from config import prospect_mp as config
-import datetime
-from . import debug
 import json
 import os
+import re
+import urllib.error
+import urllib.parse
+import urllib.request
+
+from . import debug
 
 lang = None
 
@@ -95,13 +96,13 @@ def pobierzOstrzezenia(domena, stacja):
                 "PROSPECT-MP", "Regex nie zwrócił oczekiwanych danych", buglevel=5
             )
             return None
-    except:
+    except Exception:
         debug.log("PROSPECT-MP", "Regex nie zwrócił oczekiwanych danych", buglevel=5)
         pass
         return None
 
 
-def getData(l):
+def getData(lang_module):
     data = {"data": "", "needCTCSS": False, "allOK": True, "source": "rwd_prospect"}
 
     if not os.path.exists("prospect_mp.json"):
@@ -241,14 +242,14 @@ def generuj_json(nie_zapisuj=False):
                 stany[stan][rzeka].append(wodowskaz)
         except:
             raise
-            debug.log(
-                "PROSPECT-MP",
-                "Pobieranie danych zakończyło się " + "błędem",
-                buglevel=5,
-            )
-            pass
+            # debug.log(
+            #     "PROSPECT-MP",
+            #     "Pobieranie danych zakończyło się " + "błędem",
+            #     buglevel=5,
+            # )
+            # pass
 
-    if nie_zapisuj == False:
+    if not nie_zapisuj:
         json.dump(stany, open("prospect_mp.json", "w"))
     return stany
 
@@ -260,7 +261,7 @@ if __name__ == "__main__":
         def log(self, module, message, buglevel=None):
             pass
 
-    debug = DummyDebug()
+    # debug = DummyDebug()
     import sys
 
     # tak, wiem, że można to zrobić bardziej elegancko (getopt), ale dla 2

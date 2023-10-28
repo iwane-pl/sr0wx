@@ -45,7 +45,8 @@
 # on screen, not written into the log or ignored.
 
 from config import debug as config
-import datetime, os
+import datetime
+import os
 
 config.baseURI = "127.0.0.1/"
 
@@ -79,8 +80,10 @@ class debug:
                 else:
                     logfile = open(self.filename, "a+")
                 logfile.write(formattedMessage + "\n")
-            except:
-                print(dt.strftime("%x %X UTC") + " [DEBUG]:\tCan't write to file!")
+            except OSError:
+                print(
+                    datetime.strftime("%x %X UTC") + " [DEBUG]:\tCan't write to file!"
+                )
             finally:
                 logfile.close()
 

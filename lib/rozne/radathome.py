@@ -16,15 +16,16 @@
 #   limitations under the License.
 #
 
-import urllib.request, urllib.parse, urllib.error
-import datetime
-from config import radAtHome as config
-import datetime
 import csv
-from . import debug
+import datetime
 import sqlite3
 
+from config import radAtHome as config
+
+from . import debug
+
 lang = None
+
 
 # Documentation of some kind:
 # http://www.boincatpoland.org/smf/radioactivehome/dostep-do-danych-radh/
@@ -121,9 +122,9 @@ def get_radiation_level():
         pass
 
 
-def getData(l):
+def getData(lang_module):
     global lang
-    lang = my_import(l + "." + l)
+    lang = my_import(lang_module + "." + lang_module)
     data = {"data": "", "needCTCSS": False, "debug": None, "source": "", "allOK": True}
 
     rlevel = get_radiation_level()

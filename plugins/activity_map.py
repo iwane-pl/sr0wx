@@ -17,11 +17,12 @@
 #
 
 import base64
-import logging
 import json
+import logging
 import socket
-
-import urllib.request, urllib.error, urllib.parse
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from sr0wx_module import SR0WXModule
 

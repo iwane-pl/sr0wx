@@ -16,17 +16,21 @@
 #   limitations under the License.
 #
 
-fake_gettext = lambda s: s
-_ = fake_gettext
 
 from config import wview as config
 
 # For debugging purposes:
 
-from . import debug
 import sqlite3
 
 lang = None
+
+
+def fake_gettext(s):
+    return s
+
+
+_ = fake_gettext
 
 
 def my_import(name):
@@ -70,15 +74,23 @@ limit 1;"""
 # Probably this is the beginning of the metcalc module for meteorological
 # calculations... we'll see.
 
-fahrenheit2celsius = lambda f: int((f - 32) * (5 / 9.0))
-miph2mps = lambda miph: int(miph * 0.44704)
-inHg2hPa = lambda inHg2hPa: int(inHg2hPa * 33.7685)
+
+def fahrenheit2celsius(f):
+    return int((f - 32) * (5 / 9.0))
 
 
-def getData(l):
+def miph2mps(miph):
+    return int(miph * 0.44704)
+
+
+def inHg2hPa(inHg2hPa):
+    return int(inHg2hPa * 33.7685)
+
+
+def getData(lang_module):
     rv = {"data": "", "needCTCSS": False, "source": ""}
 
-    lang = my_import(l + "." + l)
+    lang = my_import(lang_module + "." + lang_module)
     w = getWeather()
 
     # For sure, we will never use all of these, but I think it's OK to see what

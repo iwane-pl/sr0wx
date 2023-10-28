@@ -16,7 +16,9 @@
 #   limitations under the License.
 #
 
-import urllib.request, urllib.parse, urllib.error
+import urllib.request
+import urllib.parse
+import urllib.error
 import pygame
 import datetime
 import re
@@ -45,43 +47,43 @@ strefy = [
     (100, 180),  # strefy:  1,  2,  3,
     (70, 240),
     (140, 90),
-    (200, 80),  #       :  4,  5,  6,
+    (200, 80),  # :  4,  5,  6,
     (260, 50),
     (400, 90),
-    (380, 150),  #       :  7,  8,  9,
+    (380, 150),  # :  7,  8,  9,
     (410, 190),
     (510, 90),
-    (550, 90),  #       : 10, 11, 12,
+    (550, 90),  # : 10, 11, 12,
     (500, 170),
     (550, 200),
-    (170, 170),  #       : 13, 14, 15,
+    (170, 170),  # : 13, 14, 15,
     (140, 220),
     (200, 200),
-    (250, 140),  #       : 16, 17, 18,
+    (250, 140),  # : 16, 17, 18,
     (260, 200),
     (320, 170),
-    (100, 280),  #       : 19, 20, 21,
+    (100, 280),  # : 19, 20, 21,
     (80, 310),
     (170, 260),
-    (180, 310),  #       : 22, 23, 24,
+    (180, 310),  # : 22, 23, 24,
     (260, 270),
     (250, 350),
-    (360, 260),  #       : 25, 26, 27,
+    (360, 260),  # : 25, 26, 27,
     (310, 330),
     (360, 360),
-    (480, 220),  #       : 28, 29, 30,
+    (480, 220),  # : 28, 29, 30,
     (460, 280),
     (440, 340),
-    (430, 390),  #       : 31, 32, 33,
+    (430, 390),  # : 31, 32, 33,
     (420, 450),
     (560, 310),
-    (560, 400),  #       : 34, 35, 36,
+    (560, 400),  # : 34, 35, 36,
     (120, 370),
     (180, 390),
-    (250, 420),  #       : 37, 38, 39,
+    (250, 420),  # : 37, 38, 39,
     (330, 440),
     (390, 490),
-    (490, 490),  #       : 40, 41, 42
+    (490, 490),  # : 40, 41, 42
 ]
 
 poziomy = {
@@ -126,7 +128,7 @@ def get_forecast_url():
     # koniec tricka
 
     now = datetime.datetime.now()
-    year, month, day, hour = now.year, now.month, now.day, now.hour
+    year, month, day, hour = now.year, now.month, now.day, now.hour  # noqa: F841
 
     if month not in list(range(4, 10)):
         return None
@@ -135,9 +137,9 @@ def get_forecast_url():
         return url % (_url.findall(webfile)[0][0:-2])  # dlaczego [0:-2]?!?
 
 
-def getData(l):
+def getData(lang_module):
     global lang
-    lang = my_import(l + "." + l)
+    lang = my_import(lang_module + "." + lang_module)
     data = {
         "data": "",
         "needCTCSS": False,

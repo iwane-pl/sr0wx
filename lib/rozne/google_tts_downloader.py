@@ -14,8 +14,11 @@
 # This file is ugly, dirty, and probably useless when downloading
 # other samples than polish. But I will fix it one day.
 
-import urllib.request, urllib.parse, urllib.error
-import os, sys
+import urllib.request
+import urllib.parse
+import urllib.error
+import os
+import sys
 import subprocess
 
 

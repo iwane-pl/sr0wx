@@ -17,7 +17,9 @@
 #
 
 import re
-import urllib.request, urllib.parse, urllib.error
+import urllib.request
+import urllib.parse
+import urllib.error
 
 from config import hscr_laviny as config
 import datetime
@@ -68,7 +70,7 @@ def getAwareness(region):
     _exposition = re.compile("/gfx/expozice(\d).gif")
     _date = re.compile("Datum:\ (\d{1,2})\.\ (\d{1,2})\.\ (\d{4})")
 
-    level, tendention, exposition, date = False, False, False, False
+    level, tendention, exposition, date = False, False, False, False  # noqa: F841
 
     for line in downloadFile(url).split("\n"):
         line = str(line, "cp1250")
@@ -78,7 +80,7 @@ def getAwareness(region):
         if _date.findall(line) != []:
             dt = _date.findall(line)[0]
             now = datetime.datetime.now()
-            delta = datetime.timedelta(hours=24)
+            delta = datetime.timedelta(hours=24)  # noqa: F841
             infoDT = datetime.datetime(int(dt[2]), int(dt[1]), int(dt[0]), 12, 00)
             if infoDT + datetime.timedelta(hours=48) < now:
                 isActual = None
@@ -90,9 +92,9 @@ def getAwareness(region):
     return (int(level), int(tendention), int(exposition), isActual, infoDT)
 
 
-def getData(l):
+def getData(lang_module):
     global lang
-    lang = my_import(l + "." + l)
+    lang = my_import(lang_module + "." + lang_module)
 
     data = {
         "data": "",
@@ -104,7 +106,7 @@ def getData(l):
 
     level, tendention, exposition, isActual, infoDT = getAwareness(config.region)
 
-    if isActual == None:
+    if isActual is None:
         return data
     else:
         data["needCTCSS"] = True
@@ -116,7 +118,7 @@ def getData(l):
     if config.giveTendention == 1:
         data["data"] = " ".join((data["data"], lang.hscr_tendention[tendention]))
 
-    if isActual == False:
+    if not isActual:
         data["data"] = " ".join(
             (data["data"], lang.info_at, lang.readISODate(infoDT.isoformat(" ")))
         )

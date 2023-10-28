@@ -92,7 +92,7 @@ def get_validity_date(message, sms_date_time=datetime.date.today()):
 
 def add_sms_to_db(sender, message, date_rcvd):
     valid_until = get_validity_date(message, date_rcvd)
-    if valid_until[0] == True:
+    if valid_until[0]:
         message = message.split(".", 1)[1]
 
     c = conn.cursor()
@@ -137,11 +137,12 @@ def get_sms_messages(delete_rcvd=False):
                         sms["Text"],
                         sms["DateTime"] or sms["SMSCDateTime"],
                     )
-                    if config.leave_messages_on_sim == False:
+                    if not config.leave_messages_on_sim:
                         sm.DeleteSMS(f[0], pos)
                     pos += 1
                 except Exception:
-                    cont = False
+                    pass
+                    # cont = False
                 #    raise
                 # finally:
                 #    pass
@@ -165,9 +166,9 @@ def get_last_authorized_message():
     return None
 
 
-def getData(l):
+def getData(lang_module):
     global lang, conn
-    lang = my_import(l + "." + l)
+    lang = my_import(lang_module + "." + lang_module)
     if config.db_file == ":memory:" or not os.path.isfile(config.db_file):
         conn = sqlite3.connect(config.db_file)
         create_db()
@@ -181,7 +182,7 @@ def getData(l):
 
     # Empty message means that there is no new message.
     # THIS IS A DIRTY TRICK 'CAUSE I'VE FORGOT ABOUT IT AND I'M LAZY
-    if sms == None or sms["message"] == "":
+    if sms is None or sms["message"] == "":
         return {"data": "", "needCTCSS": True, "allOK": True}
     # END OF DIRTY TRICK
 
@@ -196,13 +197,11 @@ def getData(l):
                     arg = arg.replace("{ID}", str(sms["id"]))
                     args.append(arg)
             if i == 0:
-                p = subprocess.Popen(args, stdout=subprocess.PIPE)
+                subprocess.Popen(args, stdout=subprocess.PIPE)
             elif i == len(config.tts_command) - 1:
-                p = subprocess.Popen(args, stdin=subprocess.PIPE)
+                subprocess.Popen(args, stdin=subprocess.PIPE)
             else:
-                p = subprocess.Popen(
-                    args, stdin=subprocess.PIPE, stdout=subprocess.PIPE
-                )
+                subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
     data["data"] = config.template.format(
         **{

@@ -1,17 +1,18 @@
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 
-import urllib.request, urllib.error, urllib.parse
-import logging
 import json
+import logging
 import socket
+import urllib.error
+import urllib.parse
+import urllib.request
 
-from pprint import pprint
+from sr0wx_module import SR0WXModule
+
 
 # LISTA STACJI Z NUMERAMI
 # http://api.gios.gov.pl/pjp-api/rest/station/findAll
-
-from sr0wx_module import SR0WXModule
 
 
 class AirPollutionSq9atk(SR0WXModule):

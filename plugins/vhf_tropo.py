@@ -1,13 +1,11 @@
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 
-import re
 import logging
-import socket
-import requests
+import re
 
+import requests
 from PIL import Image
-from pprint import pprint
 
 from sr0wx_module import SR0WXModule
 

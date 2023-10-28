@@ -20,6 +20,8 @@
 # (http://hamradio.pl/sq9jdo/_Kurs/Kurs%20operatora/CTCSS/system_ctcss.html).
 # Please, do not modify this if you're living in Region I.
 
+import numpy.oldnumeric as Numeric
+
 CTCSSTones = {
     "A": 67.0,
     "T": 131.8,
@@ -60,8 +62,6 @@ CTCSSTones = {
     "S": 127.3,
     "AL": 250.3,
 }
-
-import numpy.oldnumeric as Numeric
 
 
 # http://www.nabble.com/Chord-player-td21350708.html
