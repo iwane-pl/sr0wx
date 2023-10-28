@@ -22,7 +22,7 @@ class PTT:
 
     def press(self):
         if self.ser:
-            if self.ptt_signal == 'DTR':
+            if self.ptt_signal == "DTR":
                 logger.info(f"{Fore.GREEN}DTR/PTT set to ON\n{Style.RESET_ALL}")
                 self.ser.dtr = True
                 self.ser.rts = False

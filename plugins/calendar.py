@@ -31,30 +31,30 @@ class CalendarSq9atk(SR0WXModule):
 
     def getSunsetSunrise(self):
         self.__logger.info("::: Pobieram dane o wschodzie i zachodzie słońca")
-        r = re.compile(rb'<h1>(.*)(\d\d:\d\d)(.*)(\d\d:\d\d)</h1>')
+        r = re.compile(rb"<h1>(.*)(\d\d:\d\d)(.*)(\d\d:\d\d)</h1>")
         url = self.__service_url + str(self.__city_id)
         html = self.downloadFile(url)
         matches = r.findall(html)
         return {
-            'sunrise': matches[0][1],
-            'sunset': matches[0][3],
+            "sunrise": matches[0][1],
+            "sunset": matches[0][3],
         }
 
     def hourToNumbers(self, time="00:00"):
-        datetime_object = datetime.strptime(time.decode('ascii'), '%H:%M')
-        time_words = self.__language.read_datetime(datetime_object, '%H %M')
+        datetime_object = datetime.strptime(time.decode("ascii"), "%H:%M")
+        time_words = self.__language.read_datetime(datetime_object, "%H %M")
         return time_words
 
     def get_data(self):
         times = self.getSunsetSunrise()
         self.__logger.info("::: Przetwarzam dane...\n")
 
-        message = ["_", "kalendarium", "_", ]
+        message = ["_", "kalendarium", "_"]
         message.extend(["wscho_d_sl_on_ca", "godzina"])
-        message.extend(self.hourToNumbers(times['sunrise']).split())
+        message.extend(self.hourToNumbers(times["sunrise"]).split())
         message.append("_")
         message.extend(["zacho_d_sl_on_ca", "godzina"])
-        message.extend(self.hourToNumbers(times['sunset']).split())
+        message.extend(self.hourToNumbers(times["sunset"]).split())
         message.append("_")
         message.append("_")
 

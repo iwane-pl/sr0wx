@@ -7,6 +7,7 @@ from kwotaslownie import kwotaslownie
 
 class TestKwotaSlownie(unittest.TestCase):
     """Klasa testów jednostkowych pakietu pyliczba"""
+
     def test_jednosci_bez_groszy(self):
         """Test wartości jednostkowych złotych"""
         jednosci_bez_groszy = {
@@ -225,5 +226,6 @@ class TestKwotaSlownie(unittest.TestCase):
         for kwota, spodziewana in list(z_groszami.items()):
             self.assertEqual(kwotaslownie(kwota, fmt=1), spodziewana)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

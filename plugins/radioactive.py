@@ -60,7 +60,7 @@ class RadioactiveSq9atk(SR0WXModule):
         dataArr = html.split(b"L.marker([")
         ret = {}
         for row in dataArr:
-            row = row.decode('utf-8')
+            row = row.decode("utf-8")
             if self.isSensorRow(row):
                 if self.isSensorMatchedById(self.__sensor_id, row):
                     ret = self.extractSensorData(row)
@@ -74,21 +74,34 @@ class RadioactiveSq9atk(SR0WXModule):
         data = self.getSensorData(html)
 
         try:
-            msvCurrent = int(float(data['current']) * 1000)
-            msvAverage = int(float(data['average']) * 1000)
+            msvCurrent = int(float(data["current"]) * 1000)
+            msvAverage = int(float(data["average"]) * 1000)
         except (ValueError, KeyError):
             self.__logger.error("::: Brak danych z czujnika: %s...\n", self.__sensor_id)
             return {}
 
-        averageValue = ["wartos_c__aktualna", self.__language.read_decimal(msvCurrent), "mikrosjiwerta", "na_godzine_", "_"]
-        currentValue = ["s_rednia_wartos_c__dobowa", self.__language.read_decimal(msvAverage), "mikrosjiwerta", "na_godzine_", "_"]
+        averageValue = [
+            "wartos_c__aktualna",
+            self.__language.read_decimal(msvCurrent),
+            "mikrosjiwerta",
+            "na_godzine_",
+            "_",
+        ]
+        currentValue = [
+            "s_rednia_wartos_c__dobowa",
+            self.__language.read_decimal(msvAverage),
+            "mikrosjiwerta",
+            "na_godzine_",
+            "_",
+        ]
 
-        message = ["_", "poziom_promieniowania", "_"] + averageValue +  currentValue
+        message = ["_", "poziom_promieniowania", "_"] + averageValue + currentValue
 
         return {
             "message": message,
             "source": "radioactiveathome_org",
         }
+
 
 def create(config):
     return RadioactiveSq9atk(**config)
