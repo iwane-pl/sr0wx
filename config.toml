@@ -41,8 +41,18 @@ service_url = 'http://api.openweathermap.org/data/2.5/'
 api_key = ''
 
 [plugins.imgw_podest]
-# TODO: Remove dependency on php
+# Mapa wodowskazow: https://hydro.imgw.pl/ - trojkatne symbole
 enabled = true
+# API for the hydro map - more data returned
+service_url = 'https://hydro.imgw.pl/api/station/hydro/?id={}'
+# Public service API - only current state and temperature returned
+#service_url = 'https://danepubliczne.imgw.pl/api/data/hydro/id/{}/json'
+water_gauges = [
+    151180070, # Gorzów Śląski
+    150170200, # Domaradz
+]
+# For debug only
+#offline_mode = true
 
 [plugins.air_pollution]
 enabled = true
