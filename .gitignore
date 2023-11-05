@@ -8,3 +8,6 @@ sr0wx.log.*
 
 audio_generator/ogg/*
 audio_generator/mpg/*
+
+build
+dist
