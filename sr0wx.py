@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 #
 #
 # ********
@@ -41,7 +41,6 @@ import logging.config
 import logging.handlers
 import os
 import socket
-import sys
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -214,13 +213,7 @@ def prepare_sample_dictionary():
                 sound_samples[el] = pygame.mixer.Sound(el.removeprefix("file://"))
 
             if el != "_" and el not in sound_samples:
-                if hasattr(sys, "_MEIPASS"):
-                    # We are PyInstalled, so assets are somewhere in the package
-                    # TODO: assets might be packaged into an outside package...
-                    assets_base_path = os.path.join("_internal", "assets")
-                else:
-                    # Working from source
-                    assets_base_path = "assets"
+                assets_base_path = "assets"
                 sample_path = os.path.join(
                     assets_base_path, cfg_data["options"]["language"], f"{el}.ogg"
                 )

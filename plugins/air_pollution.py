@@ -105,7 +105,8 @@ class AirPollutionSq9atk(SR0WXModule):
         for _, _, gas, concentration, level, *_ in data:
             message.append(gas)
             message.extend(self.__language.read_micrograms(int(concentration)).split())
-            message.append(levels[level])
+            if lvl := levels.get(level):
+                message.append(lvl)
             message.append("_")
         return message
 

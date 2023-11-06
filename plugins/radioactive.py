@@ -82,20 +82,16 @@ class RadioactiveSq9atk(SR0WXModule):
             self.__logger.error("::: Brak danych z czujnika: %s...\n", self.__sensor_id)
             return {}
 
-        averageValue = [
-            "wartos_c__aktualna",
-            self.__language.read_decimal(msvCurrent),
-            "mikrosjiwerta",
-            "na_godzine_",
-            "_",
-        ]
-        currentValue = [
-            "s_rednia_wartos_c__dobowa",
-            self.__language.read_decimal(msvAverage),
-            "mikrosjiwerta",
-            "na_godzine_",
-            "_",
-        ]
+        averageValue = (
+            ["wartos_c__aktualna"]
+            + self.__language.read_decimal(msvCurrent).split(" ")
+            + ["mikrosjiwerta", "na_godzine_", "_"]
+        )
+        currentValue = (
+            ["s_rednia_wartos_c__dobowa"]
+            + self.__language.read_decimal(msvAverage).split(" ")
+            + ["mikrosjiwerta", "na_godzine_", "_"]
+        )
 
         message = ["_", "poziom_promieniowania", "_"] + averageValue + currentValue
 
