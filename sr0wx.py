@@ -1,4 +1,4 @@
-#!/usr/bin/python -tt
+#!/usr/bin/env python 
 #
 #
 # ********
@@ -141,7 +141,7 @@ def setup_logging(config, debug=False):
 #
 # Modules may be also given in commandline, separated by a comma.
 
-cfg_data = None
+cfg_data = {}
 
 
 def parse_args():
@@ -214,7 +214,7 @@ def prepare_sample_dictionary():
                 sound_samples[el] = pygame.mixer.Sound(el.removeprefix("file://"))
 
             if el != "_" and el not in sound_samples:
-                if sys._MEIPASS:
+                if hasattr(sys, "_MEIPASS"):
                     # We are PyInstalled, so assets are somewhere in the package
                     # TODO: assets might be packaged into an outside package...
                     assets_base_path = os.path.join("_internal", "assets")
