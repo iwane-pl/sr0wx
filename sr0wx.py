@@ -1,4 +1,4 @@
-#!/usr/bin/python -tt
+#!/usr/bin/env python
 #
 #
 # ********
@@ -140,7 +140,7 @@ def setup_logging(config, debug=False):
 #
 # Modules may be also given in commandline, separated by a comma.
 
-cfg_data = None
+cfg_data = {}
 
 
 def parse_args():
@@ -213,8 +213,9 @@ def prepare_sample_dictionary():
                 sound_samples[el] = pygame.mixer.Sound(el.removeprefix("file://"))
 
             if el != "_" and el not in sound_samples:
+                assets_base_path = "assets"
                 sample_path = os.path.join(
-                    "assets", cfg_data["options"]["language"], f"{el}.ogg"
+                    assets_base_path, cfg_data["options"]["language"], f"{el}.ogg"
                 )
                 if not os.path.isfile(sample_path):
                     logger.warning(
@@ -222,7 +223,9 @@ def prepare_sample_dictionary():
                     )
                     sound_samples[el] = pygame.mixer.Sound(
                         os.path.join(
-                            "assets", cfg_data["options"]["language"], "beep.ogg"
+                            assets_base_path,
+                            cfg_data["options"]["language"],
+                            "beep.ogg",
                         )
                     )
                 else:

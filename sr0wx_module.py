@@ -64,6 +64,8 @@ class SR0WXModule:
             .replace("-", "_")
             .replace("(", "")
             .replace(")", "")
+            .replace(".", "")
+            .replace(",", "")
         )
 
     def __repr__(self):
