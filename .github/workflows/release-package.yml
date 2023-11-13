@@ -57,6 +57,7 @@ jobs:
         name: built-binary
         path: |
           ./*.tar.gz
+          ./*.zip
 
   release:
     name: Create Release
