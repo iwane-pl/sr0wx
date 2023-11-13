@@ -35,10 +35,22 @@ jobs:
       run: |
         pyinstaller ./sr0wx.spec -y
     - name: Archive assets with executable
+      if: runner.os == 'Linux'
       run: |
         mv dist/sr0wx .
-        tar czf "sr0wx_${{ runner.os }}.tar.gz" sr0wx assets/ config.toml
+        tar czf "sr0wx_linux_amd64.tar.gz" sr0wx assets/ config.toml
 
+    - name: Archive assets with executable
+      if: runner.os == 'Windows'
+      run: |
+        Move-Item dist/sr0wx.exe .
+        $compress = @{
+          Path = "sr0wx.exe", "assets", "config.toml"
+          CompressionLevel = "Optimal"
+          DestinationPath = "sr0wx_win64.zip"
+        }
+        Compress-Archive @compress
+        Compress-Archive "sr0wx_${{ runner.os }}.zip" sr0wx assets/ config.toml
     - name: Upload Builds
       uses: actions/upload-artifact@v3
       with:
@@ -63,5 +75,5 @@ jobs:
       - name: Create release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "*.tar.gz"
+          artifacts: "*.tar.gz,*.zip"
           generateReleaseNotes: true
