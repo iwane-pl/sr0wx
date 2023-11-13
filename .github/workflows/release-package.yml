@@ -15,11 +15,14 @@ permissions:
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
+    name: Build sr0wx on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python 3.11
       uses: actions/setup-python@v3
       with:
@@ -27,15 +30,38 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        if [ -f dev.txt ]; then pip install -r dev.txt; fi
+        pip install -r dev.txt
     - name: Build PyInstaller bundle
       run: |
         pyinstaller ./sr0wx.spec -y
     - name: Archive assets with executable
       run: |
         mv dist/sr0wx .
-        tar czf sr0wx_ubuntu_amd64.tar.gz sr0wx assets/ config.toml
-    - uses: ncipollo/release-action@v1
+        tar czf "sr0wx_${{ runner.os }}.tar.gz" sr0wx assets/ config.toml
+
+    - name: Upload Builds
+      uses: actions/upload-artifact@v3
       with:
-        artifacts: "sr0wx_ubuntu_amd64.tar.gz"
-        generateReleaseNotes: true
+        name: built-binary
+        path: |
+          ./*.tar.gz
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: built-binary
+
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "*.tar.gz"
+          generateReleaseNotes: true
