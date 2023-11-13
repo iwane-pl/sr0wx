@@ -50,7 +50,7 @@ jobs:
           DestinationPath = "sr0wx_win64.zip"
         }
         Compress-Archive @compress
-        Compress-Archive "sr0wx_${{ runner.os }}.zip" sr0wx assets/ config.toml
+
     - name: Upload Builds
       uses: actions/upload-artifact@v3
       with:
